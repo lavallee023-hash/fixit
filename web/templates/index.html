@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block body %}
+<div class="hero"><h1>Your AI-built app broke.<br><span>Unstuck in 10 minutes.</span></h1>
+<p class="sub">Paste the error from Lovable, Bolt, Cursor, Replit, v0 or Supabase. Get the real root cause in plain English, step-by-step fix, and a ready-to-paste prompt that stops the "fix it" loop burning your credits.</p>
+<div class="pills"><span>Lovable</span><span>Bolt</span><span>Cursor</span><span>Replit</span><span>v0</span><span>Supabase</span></div></div>
+{% if error %}<p class="err">{{ error }}</p>{% endif %}
+<form class="card" method="post" action="/diagnose" enctype="multipart/form-data">
+<p class="warn">⚠ Don't paste API keys, passwords or .env files. If you already did anywhere, rotate (regenerate) them.</p>
+<label>Email (for your {{ free }} free fixes/month)</label><input name="email" type="email" required placeholder="you@example.com">
+<label>Which tool built your app?</label><select name="tool">{% for t in tools %}<option value="{{t}}">{{ t|capitalize if t!='v0' else 'v0' }}</option>{% endfor %}</select>
+<label>Paste the error (console, build log, or what you see)</label><textarea name="error" placeholder="e.g. new row violates row-level security policy for table &quot;messages&quot;"></textarea>
+<label>What were you doing when it broke? <span class="small">(optional)</span></label><input name="context" placeholder="e.g. clicking Save on the signup form after I deployed">
+<label>Screenshot <span class="small">(optional, png/jpg)</span></label><input name="screenshot" type="file" accept="image/png,image/jpeg,image/webp">
+<label>Public GitHub repo <span class="small">(optional, read-only)</span></label><input name="repo" placeholder="https://github.com/you/your-app">
+<button type="submit">Diagnose my error →</button> <span class="small">&nbsp;Takes ~20-60 seconds.</span>
+</form>
+<h2>Pricing</h2><div class="grid"><div class="card"><div class="price">Free</div>{{ free }} fixes / month</div>
+{% for n,p,l in plans %}<div class="card"><div class="price">{{p}}</div>{{n}}</div>{% endfor %}</div>
+<p class="small">Hard cases get a human review. Free during launch.</p>{% endblock %}

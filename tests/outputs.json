@@ -1,0 +1,736 @@
+{
+  "1": {
+    "model": "gemini-3.5-flash",
+    "tool": "lovable",
+    "error": "Saving the form fails. Console: POST .../rest/v1/messages 403 (Forbidden) {\"code\":\"42501\",\"message\":\"new row violates row-level security policy for table \\\"messages\\\"\"}. Reading data works fine.",
+    "source": "https://dylancaponi.github.io/vibe-code-rescue/fixes/supabase-row-level-security-policy-error.html",
+    "known_fix": "Table has RLS on but no INSERT policy for the role; add an INSERT policy (to authenticated, with check auth.uid() = user_id). Do not disable RLS.",
+    "output": {
+      "root_cause": "The 'messages' table in Supabase has Row-Level Security (RLS) enabled, but is missing an INSERT policy that permits users to save new rows.",
+      "explanation": "Database tables use Row-Level Security (RLS) as a safety guard to control who can read or write data. Currently, your table allows reading existing messages, but denies permission when trying to create a new message because no rule (policy) has been set up to allow inserts.",
+      "fix_steps": [
+        "Open your Supabase Dashboard.",
+        "Go to Database > Policies (or Table Editor > messages > RLS Policies).",
+        "Look at the policies for the 'messages' table and verify if an INSERT policy exists.",
+        "Alternatively, paste the prompt below directly into Lovable so it can write and apply the correct SQL migration for you."
+      ],
+      "tool_prompt": "We are getting a 403 Forbidden error (code 42501: new row violates row-level security policy for table \"messages\") when submitting the form.\n\nRoot Cause: The 'messages' table lacks an RLS INSERT policy that allows users (authenticated or anonymous depending on app design) to insert rows.\n\nWhat to do:\n1. Inspect the database schema and RLS policies for the 'messages' table.\n2. Create a SQL migration to add an INSERT policy for the 'messages' table. If form submissions are meant for logged-in users, restrict inserts to authenticated users (e.g., `WITH CHECK (auth.uid() = user_id)` or `WITH CHECK (true)` for authenticated users). If public form submission is intended, allow `anon` role to insert.\n3. Do NOT disable Row-Level Security (RLS) on the table. Do NOT alter existing SELECT or DELETE policies.\n4. Verify that inserting a message works without triggering a 403 RLS violation.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "supabase_rls",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "2": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "lovable",
+    "error": "I already added an insert policy with check (true) but supabase.from('posts').insert(row).select().single() still returns 403 new row violates row-level security policy for table \"posts\" code 42501. User is signed in.",
+    "source": "https://ptkd.com/journal/lovable-dev-supabase-rls-error-403",
+    "known_fix": "The trailing .select() needs a SELECT policy too; add a SELECT policy covering the new row, or drop .select() / use returning minimal.",
+    "output": {
+      "root_cause": "Although an insert policy was created, either the policy is missing the 'FOR INSERT' command definition, lacks an appropriate 'WITH CHECK' clause configured for authenticated users, or the Supabase client is failing to send the user's authentication session token along with the request.",
+      "explanation": "A 403 error means Supabase's Row-Level Security (RLS) is blocking the database action. Even if you added a policy with `check (true)`, if it wasn't explicitly applied to the `INSERT` operation, or if the app isn't passing the logged-in user's session correctly, Supabase treats the user as anonymous and blocks the write.",
+      "fix_steps": [
+        "Open your Supabase Dashboard and navigate to the Authentication > Policies section for the 'posts' table.",
+        "Verify that the policy applies specifically to the 'INSERT' operation (not SELECT or UPDATE).",
+        "Ensure the policy definition has a valid WITH CHECK expression (e.g., `auth.role() = 'authenticated'` or `true` for testing).",
+        "Check your browser's Network tab to confirm the authorization header containing the user's Bearer token is actually being sent with the POST request."
+      ],
+      "tool_prompt": "Diagnose why the posts table insert is returning a 403 RLS violation despite a policy being added. Check how the Supabase client is initialized and verify that the user session is active and being passed correctly during supabase.from('posts').insert(row). Do not rewrite unrelated files.",
+      "confidence": 0.85,
+      "missing_info": [
+        "Exact SQL definition of the current RLS policy on the posts table",
+        "Supabase client initialization code"
+      ],
+      "category": "Database / Backend",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "3": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "bolt",
+    "error": "Uploading an avatar to Supabase storage fails: StorageApiError: new row violates row-level security policy (403 Forbidden). My INSERT policy on storage.objects checks auth.uid().",
+    "source": "https://supabase.com/docs/guides/troubleshooting/storage-error-403-forbidden-new-row-violates-row-level-security-policy-on-upload-a94384",
+    "known_fix": "Storage does INSERT ... RETURNING; missing SELECT policy on storage.objects. Add a SELECT policy mirroring the insert condition.",
+    "output": {
+      "root_cause": "The Supabase Storage INSERT (upload) policy requires auth.uid(), but the user is either not logged in or the file path being uploaded does not match the folder structure expected by the policy (such as prefixing the file name with the user's ID).",
+      "explanation": "Row-Level Security (RLS) acts like a security guard for your database and storage. When your app tries to upload a file, Supabase checks if the user has permission based on rules you set up. If the rule checks that the folder name matches the user's ID (e.g., user_id/avatar.png) and your code is uploading it somewhere else, or if the user isn't signed in, Supabase blocks it with a 403 Forbidden error.",
+      "fix_steps": [
+        "Open your Supabase Dashboard and navigate to Storage -> Policies to inspect your storage.objects INSERT policy.",
+        "Check your frontend code where the file upload function is called to ensure the user is authenticated and the file path includes the user's ID (e.g., `${user.id}/${fileName}`).",
+        "Copy the prompt below and paste it directly into Bolt to fix the file path or authentication state."
+      ],
+      "tool_prompt": "Diagnose the Supabase storage upload failure. Check the file upload function where it interacts with Supabase storage. Ensure the user is authenticated before uploading and that the file path being uploaded matches the structure required by our Supabase RLS policy (typically including the user's ID in the file path, like `user.id/filename`). Do not disable Supabase RLS or modify unrelated files. Verify by successfully uploading an avatar after the fix.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "database",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "bolt"
+    }
+  },
+  "4": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "lovable",
+    "error": "My dashboard shows no data. supabase.from('projects').select('*') returns data: [] and error: null, but I can see rows in the Supabase table editor.",
+    "source": "https://supabase.com/docs/guides/troubleshooting/why-is-my-select-returning-an-empty-data-array-and-i-have-data-in-the-table-xvOPgx",
+    "known_fix": "RLS enabled with no SELECT policy matching the role, so rows are silently filtered. Add a SELECT policy (e.g. user_id = auth.uid()); check user is logged in.",
+    "output": {
+      "root_cause": "Row Level Security (RLS) policies are enabled on the Supabase 'projects' table, but there are no policies granting permission to read the data, or the user is not authenticated.",
+      "explanation": "Row Level Security is a security feature in Supabase that acts like a security guard for your tables. Even though data exists in the database, the guard is blocking your app from seeing it because no rules (policies) have been set up to allow reading it.",
+      "fix_steps": [
+        "Open your Supabase Dashboard and go to the Authentication section to check if you are logged in or if your app requires a login session.",
+        "Go to the Database -> Tables section in Supabase, click on your 'projects' table, and check the 'Policies' tab.",
+        "Add a policy that allows reading data (for testing purposes, you can temporarily allow public read access, or ensure authenticated users have permission to select rows)."
+      ],
+      "tool_prompt": "Please diagnose why my Supabase query to the 'projects' table returns an empty array even though rows exist in the database. Check if the issue is related to Supabase Row Level Security (RLS) policies or user authentication state. Do not rewrite unrelated files or disable database security permanently; instead, guide me on what RLS policy needs to be added to allow reading project data. Verify the fix by confirming data is successfully fetched in the dashboard.",
+      "confidence": 0.9,
+      "missing_info": [
+        "Are you logged into the application when viewing the dashboard?",
+        "Are there any RLS policies currently enabled on the 'projects' table in Supabase?"
+      ],
+      "category": "database",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "5": {
+    "model": "gemini-3.7-flash",
+    "tool": "lovable",
+    "error": "Access to fetch at 'https://xyz.supabase.co/functions/v1/send-email' from origin 'https://myapp.lovable.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "source": "https://formgong.com/en/blog/supabase-edge-function-cors/",
+    "known_fix": "Edge function doesn't answer the OPTIONS preflight; return corsHeaders for OPTIONS first and on every response.",
+    "output": {
+      "root_cause": "The Supabase Edge Function 'send-email' is not handling HTTP OPTIONS preflight requests or returning the required CORS headers.",
+      "explanation": "When your app running on lovable.app tries to contact your Supabase backend function, your browser sends a hidden test request (called an 'OPTIONS preflight check') to ensure the server allows requests from other websites (CORS). Because the function does not send back permission headers ('Access-Control-Allow-Origin'), the browser blocks the email from being sent.",
+      "fix_steps": [
+        "Open your Lovable project chat.",
+        "Paste the prompt provided below to instruct Lovable to update the 'send-email' Supabase Edge Function to properly handle CORS headers and OPTIONS requests.",
+        "If you manage Supabase Edge Functions through GitHub or the Supabase CLI, ensure the updated function is deployed."
+      ],
+      "tool_prompt": "Diagnose before editing: The Edge Function at `supabase/functions/send-email/index.ts` is failing with a CORS error because it does not handle browser preflight OPTIONS requests or include CORS headers in responses.\n\nPlease update `supabase/functions/send-email/index.ts` (or create a shared `_shared/cors.ts` if appropriate) with the standard Supabase CORS configuration:\n1. Define `corsHeaders` with:\n   - 'Access-Control-Allow-Origin': '*'\n   - 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'\n2. At the very beginning of the serve/fetch handler, add a check:\n   if (req.method === 'OPTIONS') {\n     return new Response('ok', { headers: corsHeaders });\n   }\n3. Include `...corsHeaders` in the headers object of every single Response returned (both success and error responses).\n\nDo not rewrite unrelated logic or remove existing email sending logic. Verify by ensuring the preflight check exits early with a 200/ok response containing the CORS headers.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "cors_error",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "6": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "lovable",
+    "error": "Edge function call fails with 'Failed to send a request to the Edge Function'. Console: Access to fetch ... blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. (no mention of preflight). It worked yesterday before I added Resend emails.",
+    "source": "https://formgong.com/en/blog/supabase-edge-function-cors/",
+    "known_fix": "Preflight passes; the function is crashing (e.g. RESEND_API_KEY secret not set) and returning a 500 without CORS headers. Check function logs, set the missing secret, add CORS headers to error responses.",
+    "output": {
+      "root_cause": "The newly added Edge Function for sending emails via Resend is missing the required CORS (Cross-Origin Resource Sharing) headers in its HTTP response, blocking the browser from reading the result.",
+      "explanation": "When your frontend app talks to a backend Edge Function, the browser checks for specific security headers ('Access-Control-Allow-Origin') to ensure safe communication. Because the email function was recently added without these headers, the browser blocks the response, leading to the CORS error.",
+      "fix_steps": [
+        "Open your Lovable project and locate the newly created Edge Function responsible for sending emails (usually in a folder named 'supabase/functions').",
+        "Copy the prompt below and paste it into your Lovable chat to have the AI fix the missing headers."
+      ],
+      "tool_prompt": "Diagnose the email Edge Function in the supabase/functions folder. Root cause is a missing CORS header ('Access-Control-Allow-Origin') in the function's HTTP response, which is causing browser blocking. Update the function to properly handle OPTIONS preflight requests and include CORS headers in all responses (success and error). Do not rewrite unrelated files or change your email sending logic with Resend. Verify by invoking the function and ensuring no CORS errors appear in the console.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "edge_function",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "7": {
+    "model": "gemini-3.7-flash",
+    "tool": "lovable",
+    "error": "Authenticated users get 'Failed to fetch' when calling the game-state edge function. Error: Failed to send a request to the Edge Function. App runs in the preview (sandbox.lovable.dev). The function has 'Access-Control-Allow-Origin': 'https://lovable.dev'.",
+    "source": "https://www.reddit.com/r/lovable/comments/1n88oat/the_power_of_the_25_why_analysis/",
+    "known_fix": "CORS header only allows https://lovable.dev, blocking the sandbox/preview origin. Allow the actual origins (or *) in the function's CORS headers.",
+    "output": {
+      "root_cause": "CORS (Cross-Origin Resource Sharing) header mismatch: the Edge Function only permits requests from 'https://lovable.dev', but the app is running on 'sandbox.lovable.dev'.",
+      "explanation": "Web browsers enforce a security guardrail called CORS. It requires the backend (your Edge Function) to specifically authorize the exact website address making the request. Because your test app runs on 'sandbox.lovable.dev' while the backend only approved 'https://lovable.dev', the browser blocked the connection and threw a 'Failed to fetch' error.",
+      "fix_steps": [
+        "Open your Lovable project chat.",
+        "Copy and paste the tool prompt below into the Lovable chat.",
+        "Wait for Lovable to update the CORS headers in the game-state edge function.",
+        "Refresh your preview sandbox page and retry the action to verify it succeeds."
+      ],
+      "tool_prompt": "Please fix the CORS configuration in the `game-state` Supabase Edge Function (and any shared CORS helper like `_shared/cors.ts`). The function currently restricts 'Access-Control-Allow-Origin' to 'https://lovable.dev', which causes requests from the preview sandbox ('sandbox.lovable.dev') to fail with a 'Failed to fetch' CORS error. Update the Edge Function's CORS response headers to allow '*' (or dynamically allow origins from lovable.dev and sandbox.lovable.dev), and ensure HTTP OPTIONS preflight requests return a 200/204 response with these CORS headers. Do not modify the existing game logic, authentication checks, or other unrelated edge functions.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "CORS",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "8": {
+    "model": "gemini-3.7-flash",
+    "tool": "bolt",
+    "error": "Deploying my Vite + React project to Netlify from Bolt fails: Module not found: Error: Can't resolve 'next/dist/pages/_app' in '/home/project'. Module not found: Error: Can't resolve 'next/dist/pages/_document'. Build failed because of webpack errors. No Next.js in package.json.",
+    "source": "https://www.reddit.com/r/boltnewbuilders/comments/1ho10qs/unable_to_deploy_project_via_bolt_to_netlify/",
+    "known_fix": "Deploy uses wrong build command 'npx next build' for a Vite app. Set build command to npm run build and publish dir dist (e.g. netlify.toml).",
+    "output": {
+      "root_cause": "Netlify is attempting to build the project as a Next.js application instead of a Vite application, typically caused by an active Next.js Netlify plugin, an incorrect framework preset in Netlify's dashboard, or a misconfigured `netlify.toml` file.",
+      "explanation": "Netlify tries to guess what framework your app uses. Here, it mistakenly thinks your site is built with Next.js (a different web tool) and is running Next.js build scripts looking for Next.js internal files. Because your app is actually built with Vite, those Next.js files don't exist, causing the build to crash.",
+      "fix_steps": [
+        "Log in to your Netlify dashboard and select your site.",
+        "Go to 'Site configuration' (or 'Site settings') > 'Build & deploy' > 'Continuous deployment' > 'Build settings'.",
+        "Change the 'Framework' preset to 'Vite' (or 'None'). Ensure 'Build command' is set to `npm run build` and 'Publish directory' is set to `dist`.",
+        "In the Netlify dashboard menu, go to 'Plugins' (or 'Integrations'). If the '@netlify/plugin-nextjs' or 'Next.js' plugin is listed, uninstall/remove it.",
+        "Ask Bolt to add a clean `netlify.toml` file at the root of your project using the prompt provided below.",
+        "Trigger a redeploy in Netlify by clicking 'Deploys' > 'Trigger deploy' > 'Clear cache and deploy site'."
+      ],
+      "tool_prompt": "Diagnose our deployment configuration before editing files. The app is a Vite + React application, but Netlify's build is failing because it is trying to resolve Next.js internal modules ('next/dist/pages/_app').\n\n1. Check the root directory for any stray Next.js configuration files (such as next.config.js, next.config.mjs) or a 'pages' folder that might trigger Netlify's Next.js framework detector. If found and unused, remove them.\n2. Create or update `netlify.toml` in the project root with the following exact configuration for Vite:\n```toml\n[build]\n  command = \"npm run build\"\n  publish = \"dist\"\n\n[[redirects]]\n  from = \"/*\"\n  to = \"/index.html\"\n  status = 200\n```\n3. Do not add Next.js dependencies or plugins. Do not rewrite existing application logic in `src/`.\n4. Verify that `package.json` has a standard Vite build script: `\"build\": \"vite build\"`.",
+      "confidence": 0.95,
+      "missing_info": [
+        "Whether a `netlify.toml` already exists in your repo",
+        "Whether the Next.js plugin was installed directly from the Netlify dashboard UI"
+      ],
+      "category": "deployment",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "bolt"
+    }
+  },
+  "9": {
+    "model": "gemini-3.7-flash",
+    "tool": "bolt",
+    "error": "I deployed my Bolt app to Netlify and the page is completely blank / shows 'Page not found' on the root. Build log says success.",
+    "source": "https://www.netlify.com/knowledge-base/deploy-your-bolt-app-to-netlify/",
+    "known_fix": "Wrong publish directory; Vite outputs dist (CRA outputs build). Set publish directory to dist.",
+    "output": {
+      "root_cause": "Netlify is looking in the wrong folder for your app's built files (typically expecting 'dist' but set to something else or root), or is missing the redirect configuration required for single-page web apps.",
+      "explanation": "Bolt builds modern web apps using Vite, which compiles your finished code into a folder named 'dist'. When Netlify deploys, it looks for an 'index.html' file in the designated publish directory. If Netlify's publish directory setting is empty or pointing to the root folder, Netlify cannot find your built page and returns a 'Page not found' error.",
+      "fix_steps": [
+        "Log in to your Netlify dashboard and click on your site.",
+        "Go to 'Site configuration' (or 'Site settings') > 'Build & deploy' > 'Continuous deployment' > 'Build settings'.",
+        "Ensure 'Build command' is set to 'npm run build' and 'Publish directory' is set to 'dist'. Save any changes.",
+        "Paste the prompt below into Bolt to generate a 'netlify.toml' configuration file so Netlify automatically handles all routes and build paths.",
+        "Trigger a new deploy on Netlify by going to the 'Deploys' tab and clicking 'Trigger deploy' > 'Deploy site'."
+      ],
+      "tool_prompt": "We need to fix deployment for Netlify. The site currently shows a 404 / blank page because the build output directory and routing aren't configured for Netlify.\n\n1. Do not rewrite or modify any existing app logic, components, or styles.\n2. Create a `netlify.toml` file in the project root directory with the following configuration:\n\n```toml\n[build]\n  command = \"npm run build\"\n  publish = \"dist\"\n\n[[redirects]]\n  from = \"/*\"\n  to = \"/index.html\"\n  status = 200\n```\n\n3. Also ensure that if there is a `public/` folder, it contains a `_redirects` file with the content: `/* /index.html 200`.\n4. Verify that the build still succeeds with `npm run build`.",
+      "confidence": 0.85,
+      "missing_info": [
+        "Your exact Netlify build settings (Build Command and Publish Directory)",
+        "Whether your browser console shows JavaScript errors when opening the page"
+      ],
+      "category": "deployment",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "bolt"
+    }
+  },
+  "10": {
+    "model": "gemini-3.6-flash",
+    "tool": "bolt",
+    "error": "Site works when I click around from the homepage but if I refresh on /dashboard or open the link directly, Netlify shows 'Page not found - Looks like you've followed a broken link'.",
+    "source": "https://www.netlify.com/knowledge-base/deploy-your-bolt-app-to-netlify/",
+    "known_fix": "Client-side routing without SPA redirect; add public/_redirects with '/* /index.html 200'.",
+    "output": {
+      "root_cause": "Missing Single-Page Application (SPA) redirect configuration for Netlify.",
+      "explanation": "Your website is built as a Single Page Application (SPA), where JavaScript handles switching between pages (like `/dashboard`) inside the browser. When you click around, no new page is downloaded. However, when you refresh or open `/dashboard` directly, your browser asks Netlify's server for a file at `/dashboard`. Since that folder or file doesn't physically exist on the server, Netlify displays a 404 'Page not found' error. Netlify needs a redirect rule telling it to send all page requests to `index.html` so your JavaScript code can handle the route.",
+      "fix_steps": [
+        "Copy the prompt provided below.",
+        "Paste it into your Bolt AI chat box and submit it.",
+        "Re-deploy or push your code to Netlify once Bolt creates the redirect file.",
+        "Test by navigating directly to `/dashboard` or refreshing the browser on that page."
+      ],
+      "tool_prompt": "Diagnose before editing. My app is throwing a Netlify 404 'Page not found' error whenever a user refreshes or visits a nested route like `/dashboard` directly. The root cause is a missing SPA fallback redirect rule for Netlify. Please create a file named `_redirects` inside the `public` folder with the content:\n/*    /index.html   200\n\nAlternatively, if the project uses a `netlify.toml` file in the root folder, add the following redirect rule:\n[[redirects]]\n  from = \"/*\"\n  to = \"/index.html\"\n  status = 200\n\nDo not rewrite or modify any existing frontend routing code or component logic. Please verify that the public asset directory includes this file so that Netlify correctly serves `index.html` for all browser paths.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "routing_deploy",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "bolt"
+    }
+  },
+  "11": {
+    "model": "gemini-3.6-flash",
+    "tool": "v0",
+    "error": "My React + Vite app on Vercel returns 404: NOT_FOUND when I refresh any page other than the home page.",
+    "source": "https://stackoverflow.com/questions/75846073/vercel-reactjs-vite-returning-404-on-page-refresh",
+    "known_fix": "SPA needs a catch-all rewrite; add vercel.json rewrites source '/(.*)' -> '/index.html'.",
+    "output": {
+      "root_cause": "Vercel is looking for actual server-side files matching your route URL (like /dashboard), but Single Page Applications (SPAs) rely on a single index.html file to handle all routing on the client side.",
+      "explanation": "When you click links inside your app, JavaScript changes the page without asking the server. But when you refresh, your browser asks Vercel's server directly for the file at that path. Because that file doesn't physically exist on the server, Vercel returns a 404 error instead of loading your app's main file.",
+      "fix_steps": [
+        "Create or open the `vercel.json` file in the root folder of your project.",
+        "Add a rewrite rule that tells Vercel to direct all page requests to `index.html` so your React app can handle the routing.",
+        "Commit and push the changes to redeploy on Vercel."
+      ],
+      "tool_prompt": "Please fix the 404 error on page refresh by adding a rewrite rule to Vercel's configuration.\n\nDiagnosis:\nThis is a Single Page Application (SPA) client-side routing issue on Vercel. Requests to sub-routes return 404 because Vercel doesn't know to route them to `index.html`.\n\nChanges needed:\n1. Create or update `vercel.json` in the project root folder.\n2. Add the following JSON structure to redirect all routes to `/`:\n{\n  \"rewrites\": [\n    { \"source\": \"/(.*)\", \"destination\": \"/\" }\n  ]\n}\n\nWhat NOT to change:\n- Do not modify existing React router code or app structure.\n- Do not rewrite unrelated config files.\n\nVerification:\nEnsure the build succeeds and navigating/refreshing a sub-route (e.g., /dashboard) serves index.html instead of a 404 page.",
+      "confidence": 0.98,
+      "missing_info": [],
+      "category": "deployment",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "v0"
+    }
+  },
+  "12": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "bolt",
+    "error": "Everything works in the Bolt preview but on the live Netlify site the login/data features are broken and the console says the API request failed.",
+    "source": "https://www.netlify.com/knowledge-base/deploy-your-bolt-app-to-netlify/",
+    "known_fix": "Missing environment variables on Netlify (or backend allowed-origin only allows the preview domain). Add env vars in Netlify and redeploy; update allowed origins.",
+    "output": {
+      "root_cause": "Missing Environment Variables in Netlify",
+      "explanation": "Your app works in Bolt because Bolt stores your secret connection keys (like Supabase or Firebase URLs) safely behind the scenes. When your app goes live on Netlify, Netlify doesn't automatically know those keys, so the login and data features fail because they have no address to connect to.",
+      "fix_steps": [
+        "Go to your Supabase (or backend) dashboard and copy your Project URL and anon/public API key.",
+        "Log in to your Netlify dashboard and select your deployed site.",
+        "Go to Site settings > Environment variables and click 'Add a variable'.",
+        "Add each missing variable name (for example, VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY) along with their actual values.",
+        "Go to the 'Deploys' tab in Netlify, click 'Trigger deploy' and select 'Clear cache and deploy site'."
+      ],
+      "tool_prompt": "Diagnose the environment configuration. Check my source code (like vite.config.ts or lib/supabase.ts) to see what environment variables (like VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, or similar API keys) are required by the app to connect to the backend. Do not modify any unrelated files or rewrite working logic. State clearly which exact environment variable names need to be added to Netlify.",
+      "confidence": 0.95,
+      "missing_info": [
+        "The specific backend service being used (Supabase, Firebase, etc.)",
+        "The exact names of the environment variables used in the codebase"
+      ],
+      "category": "deployment",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "bolt"
+    }
+  },
+  "13": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "cursor",
+    "error": "npm run dev fails: Module not found: Can't resolve '@/components/Button'. Cursor created the component a minute ago.",
+    "source": "https://www.rapidevelopers.com/ai-build-errors/cursor-module-not-found",
+    "known_fix": "Import path/alias wrong: file actually at a different path (e.g. components/ui/Button) or '@/*' alias not configured in tsconfig paths. Fix the path or add the alias; npm install if package.",
+    "output": {
+      "root_cause": "Path alias configuration issue where the '@/' prefix is not recognized by the build system or TypeScript, preventing it from finding the newly created Button component.",
+      "explanation": "When Cursor creates a file using the '@/' shortcut (which usually points to your 'src' folder), your project needs a specific mapping rule in the configuration files to understand where '@' actually leads. If this rule is missing from 'tsconfig.json' or your bundler settings like Vite, the app won't know how to find the file.",
+      "fix_steps": [
+        "Open your project in Cursor and check if the 'Button.tsx' (or .jsx) file actually exists inside a 'src/components/' folder.",
+        "Copy the prompt below and paste it directly into your Cursor chat to let the AI fix the path alias configuration."
+      ],
+      "tool_prompt": "Diagnose why the path alias '@/' is failing for '@/components/Button'. Check tsconfig.json and vite.config.ts (or next.config.js) to ensure path mapping for '@' pointing to './src' is correctly configured. Do not rewrite unrelated files. Fix the configuration so the module resolves properly, and verify by running the build check.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "Configuration",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "cursor"
+    }
+  },
+  "14": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "v0",
+    "error": "Error: Hydration failed because the initial UI does not match what was rendered on the server. Text content does not match server-rendered HTML. The component shows the current time and a greeting.",
+    "source": "https://matevalidate.com/guide/nextjs-hydration-error",
+    "known_fix": "Rendering time-dependent/browser-only values during render makes server and client HTML differ. Move to useEffect after mount (or suppressHydrationWarning on that single element).",
+    "output": {
+      "root_cause": "A component is rendering dynamic data like the current time or a dynamic greeting that changes between the server's generation and the browser's first display, causing a mismatch.",
+      "explanation": "When your app builds pages on a server, it takes a snapshot of the code. If that code uses something that constantly changes\u2014like the current time or a user's local timezone\u2014the time generated on the server won't match the time in the user's browser when it loads, causing a 'hydration error'.",
+      "fix_steps": [
+        "Open your project in v0.",
+        "Locate the component displaying the current time or greeting.",
+        "Update the component to only render the dynamic time or greeting *after* the page has loaded on the client side using a React effect hook or a mounted state."
+      ],
+      "tool_prompt": "Please diagnose and fix the hydration error in the component that displays the current time and greeting. Root cause: server-rendered HTML does not match the client-side render because of dynamic time/date values. Fix this by ensuring the time or greeting only renders after the component has mounted on the client (using a `isMounted` state or `useEffect`). Do not rewrite unrelated files.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "Frontend Rendering",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "v0"
+    }
+  },
+  "15": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "replit",
+    "error": "My published Replit app shows 'Application failed to respond'. It works in the preview. Server code: app.listen(3000).",
+    "source": "https://docs.replit.com/help/networking-and-app-errors",
+    "known_fix": "App isn't listening on the port Replit expects; bind to process.env.PORT (and 0.0.0.0) instead of hard-coded 3000; check logs for startup crash.",
+    "output": {
+      "root_cause": "The server is listening on a hardcoded port (3000) or 0.0.0.0, but Replit's production deployment environment requires the application to listen on the port provided by the environment variable `process.env.PORT` bound to '0.0.0.0'.",
+      "explanation": "When you run an app in the Replit preview, it often uses default ports or specific internal setups. However, when Replit publishes and deploys your app to production, it assigns a dynamic port using a system variable called `process.env.PORT`. If your code ignores this variable and forces port 3000, the deployment cannot route traffic to your app, resulting in 'Application failed to respond'.",
+      "fix_steps": [
+        "Open your main server file (usually index.js, server.js, or main.py).",
+        "Locate where your server starts listening (e.g., app.listen(3000)).",
+        "Update the code to use process.env.PORT || 3000 so it works both locally and in production.",
+        "Restart your deployment or republish the app in Replit."
+      ],
+      "tool_prompt": "Diagnose the server startup configuration in the main entry file (like index.js or server.js). The app fails in production with 'Application failed to respond' because it is likely listening on a hardcoded port instead of the environment-provided port. Update the server listen configuration to use `process.env.PORT` with a fallback, ensuring it binds to '0.0.0.0' (e.g., `const PORT = process.env.PORT || 3000; app.listen(PORT, '0.0.0.0', () => {});`). Do not modify unrelated files or change database configurations. Verify by ensuring the app starts successfully without errors.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "Deployment / Configuration",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "replit"
+    }
+  },
+  "16": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "replit",
+    "error": "Deploy fails: error: The application must serve traffic on either port 80 (if configured) or the first port in the port configuration. This port was never opened. Logs: forwarding local port 8000 to external port 80 ... Uvicorn running on 0.0.0.0:80. a port configuration was specified but the required port was never opened. .replit has [[ports]] localPort = 8000 externalPort = 80",
+    "source": "https://stackoverflow.com/questions/79391440/problem-deploying-python-fastapi-on-replit-with-sentence-transformers",
+    "known_fix": "Port mismatch: app listens on 80 but .replit localPort is 8000. Run uvicorn on --port 8000 (match localPort) or change config. (Also heavy import may slow startup past health check.)",
+    "output": {
+      "root_cause": "The Replit deployment configuration expects the app to listen on the port specified in the Replit configuration file, but the application code is starting on a different port or failing to bind properly.",
+      "explanation": "Replit runs your app and checks if it opens the exact port you configured in your settings. Your logs show the app tried to run on port 8000, but Replit's deployment system expected it to listen on the port defined in your configuration files.",
+      "fix_steps": [
+        "Open your project in Replit and locate the `.replit` or deployment configuration file.",
+        "Check the port configuration to ensure the app code and the deployment ports match.",
+        "Copy the prompt below and paste it into your Replit AI assistant to fix the startup port."
+      ],
+      "tool_prompt": "Diagnose our Replit deployment failure regarding port binding. Check our startup script (such as main.py, app.py, or package.json) and our `.replit` file. Ensure that the web server binds to the exact port expected by Replit's deployment settings (port 80 or the port specified in the configuration). Do not rewrite unrelated files or change project logic.",
+      "confidence": 0.9,
+      "missing_info": [],
+      "category": "Deployment & Infrastructure",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "replit"
+    }
+  },
+  "17": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "replit",
+    "error": "Publishing fails promotion step / health check. My Flask app runs fine in the workspace. app.run(host='127.0.0.1', port=5000)",
+    "source": "https://docs.replit.com/build/troubleshooting",
+    "known_fix": "Server listens on localhost/127.0.0.1; published apps must listen on 0.0.0.0 (and the configured port with externalPort 80).",
+    "output": {
+      "root_cause": "The Flask application is hardcoded to listen on loopback address '127.0.0.1' instead of '0.0.0.0', preventing external health check requests from reaching the server in the production environment.",
+      "explanation": "When you run your app in your workspace, it only needs to listen to your local preview. But when Replit publishes your app, its automated health check system tries to reach your server from outside. Because '127.0.0.1' only accepts traffic from inside the container itself, the health check fails and blocks the promotion step.",
+      "fix_steps": [
+        "Open your main Flask application file (usually main.py or app.py).",
+        "Locate the line where app.run() is called.",
+        "Copy the prompt below and paste it into your Replit AI assistant to fix the host and port settings properly for production."
+      ],
+      "tool_prompt": "Diagnose the app.run() configuration. Change the host from '127.0.0.1' to '0.0.0.0' and ensure it reads the PORT environment variable if available (e.g., port=int(os.environ.get('PORT', 5000))). Do not rewrite unrelated files or change routing logic. Verify by ensuring the app starts successfully and binds to all network interfaces.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "Deployment / Configuration",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "replit"
+    }
+  },
+  "18": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "bolt",
+    "error": "Live site is blank. Console: Uncaught Error: supabaseUrl is required. at new SupabaseClient. Works locally. I set SUPABASE_URL in Netlify environment variables.",
+    "source": "https://vite.dev/guide/env-and-mode",
+    "known_fix": "Vite only exposes env vars prefixed VITE_ and inlines them at build time. Name them VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY in Netlify, reference statically, and redeploy.",
+    "output": {
+      "root_cause": "The Supabase configuration in the frontend code is looking for environment variables prefixed with 'VITE_', but they were set in Netlify without the prefix or the code expects them bundled at build time.",
+      "explanation": "When building apps in tools like Bolt, frontend code (like React/Vite) needs environment variables to start with 'VITE_' (for example, 'VITE_SUPABASE_URL') so they get included in the app when it is built. Even though you added 'SUPABASE_URL' in Netlify, the application code cannot see it because it lacks the 'VITE_' prefix or wasn't exposed during the build process.",
+      "fix_steps": [
+        "Log in to your Netlify dashboard and go to your site settings.",
+        "Navigate to Build & deploy > Environment variables.",
+        "Ensure your environment variables are prefixed with 'VITE_' (rename 'SUPABASE_URL' to 'VITE_SUPABASE_URL' and 'SUPABASE_ANON_KEY' to 'VITE_SUPABASE_ANON_KEY').",
+        "Trigger a new deployment in Netlify so it builds the site with the correct variables."
+      ],
+      "tool_prompt": "Diagnose the Supabase client initialization in the codebase. The live site is failing with 'Uncaught Error: supabaseUrl is required' because the code is looking for environment variables with the 'VITE_' prefix (such as import.meta.env.VITE_SUPABASE_URL), but they may be named differently or not exposed correctly. Update the Supabase initialization file to correctly look for `import.meta.env.VITE_SUPABASE_URL` and `import.meta.env.VITE_SUPABASE_ANON_KEY`. Do not rewrite unrelated files, and do not hardcode any sensitive keys.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "environment_variables",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "bolt"
+    }
+  },
+  "19": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "lovable",
+    "error": "When new users click the confirmation link in the signup email they land on http://localhost:3000/#access_token=... and get 'This site can't be reached'.",
+    "source": "https://supabase.com/docs/guides/auth/redirect-urls",
+    "known_fix": "Supabase Auth Site URL is still the default localhost:3000. Set Site URL to the production URL and add it to Redirect URLs.",
+    "output": {
+      "root_cause": "Supabase email redirect URLs are currently set to point to a local development address (localhost:3000) instead of your live production website URL hosted by Lovable.",
+      "explanation": "When users sign up, Supabase sends them an email with a confirmation link. Right now, that link is programmed to send them to 'localhost:3000', which is a private address on your own computer, not a public website. Because your live users aren't running your app on their own computer, their browser says 'This site can't be reached'.",
+      "fix_steps": [
+        "Open your Supabase project dashboard in your browser.",
+        "Click on 'Authentication' in the left-hand menu, then click on 'URL Configuration'.",
+        "Find the 'Site URL' field and change it from 'http://localhost:3000' to your live public Lovable app URL (e.g., https://your-project-name.lovable.app).",
+        "Under 'Redirect URLs', add your live app URL as well, making sure to click Save."
+      ],
+      "tool_prompt": "Diagnose our Supabase authentication settings. The root cause is that our Supabase email redirect URLs are pointing to localhost:3000 instead of our live Lovable production URL. Please check our authentication configuration or callback code to ensure it correctly handles live production redirect URLs from Supabase. Do not rewrite unrelated files or change database schemas.",
+      "confidence": 0.95,
+      "missing_info": [
+        "Lovable project live URL"
+      ],
+      "category": "Authentication",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "20": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "cursor",
+    "error": "Stripe webhook endpoint returns 400: Webhook signature verification failed. No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? I'm using express with app.use(express.json()).",
+    "source": "https://docs.stripe.com/webhooks/signature?lang=node",
+    "known_fix": "express.json parses body before constructEvent; must pass raw body (express.raw on the webhook route) and use the endpoint's whsec_ secret.",
+    "output": {
+      "root_cause": "Express middleware app.use(express.json()) parses the incoming request body into a JavaScript object before it reaches the Stripe webhook route. Stripe signature verification requires the raw, unparsed string buffer of the request body.",
+      "explanation": "When Stripe sends a webhook, it includes a special signature header to prove the message actually came from Stripe. To check this signature, your code needs the exact, untouched raw text bytes that Stripe sent. However, 'app.use(express.json())' automatically intercepts and converts every incoming JSON body into a readable object, destroying the raw text format Stripe needs, which results in the signature verification failure (400 error).",
+      "fix_steps": [
+        "Open your backend server entry file (usually server.js, index.js, or app.js) in Cursor.",
+        "Locate where 'app.use(express.json())' is defined and ensure your Stripe webhook route is defined *before* that global JSON parser, OR configure express.json to ignore the webhook route.",
+        "Update your Stripe webhook route to use 'express.raw({ type: 'application/json' })' specifically for that endpoint so the raw body is preserved."
+      ],
+      "tool_prompt": "Diagnose the Stripe webhook endpoint before making changes. Root cause: app.use(express.json()) parses the request body before Stripe's signature verification can read the raw request body string. Update the Stripe webhook route to use express.raw({ type: 'application/json' }) and ensure this route is defined before any global express.json() middleware, or pass the raw body correctly. Do not modify unrelated routes or rewrite other files. Verify by checking that the Stripe webhook test event returns a 200 OK status instead of a 400 signature verification error.",
+      "confidence": 0.98,
+      "missing_info": [],
+      "category": "Backend",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "cursor"
+    }
+  },
+  "21": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "cursor",
+    "error": "After Cursor added a filter to my table: Error: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.",
+    "source": "https://askvibe.dev/q/2gqhmxu2d4-maximum-update-depth-exceeded-after-cursor-added-a-filter-to-my-table",
+    "known_fix": "useEffect sets state that is in its own deps (derived state loop). Compute filtered rows with useMemo instead of state, or fix deps.",
+    "output": {
+      "root_cause": "An infinite loop was created in a React component where a state updating function (like setState) is being called inside a useEffect hook without a proper dependency array, or a value inside the dependency array is changing on every single render (such as an unmemoized object or array).",
+      "explanation": "Think of this like a dog chasing its tail: the screen updates, which triggers a background action, which immediately forces another screen update, repeating infinitely until the browser crashes to protect your computer.",
+      "fix_steps": [
+        "Open your Cursor editor and look at the file where the table and filter were recently added.",
+        "Check all `useEffect` hooks to ensure they have a proper dependency array (e.g., `[dependency]`, not `[]` if variables are used, and definitely not missing entirely).",
+        "Ensure that any function or object placed inside the dependency array is wrapped in `useCallback` or `useMemo` so it doesn't get recreated on every render.",
+        "Paste the provided prompt into Cursor to let the AI fix the infinite loop safely."
+      ],
+      "tool_prompt": "Diagnose the React infinite loop causing the 'Maximum update depth exceeded' error in the component containing the recently added table filter. Check all useEffect hooks for missing or unstable dependencies that trigger state updates on every render. Fix the dependency array or wrap unstable objects/functions using useCallback or useMemo. Do not rewrite unrelated files or change global settings.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "frontend_error",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "cursor"
+    }
+  },
+  "22": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "lovable",
+    "error": "I exported my Lovable project and npm install fails: npm ERR! code ERESOLVE npm ERR! ERESOLVE unable to resolve dependency tree ... peer react@\"^16.8.0 || ^17.0.0 || ^18.0.0\" from react-day-picker@8.10.1. Found: react@19.",
+    "source": "https://dylancaponi.github.io/vibe-code-rescue/fixes/npm-install-eresolve.html",
+    "known_fix": "Peer dependency conflict with React 19. Upgrade the named package to a compatible version, or install with --legacy-peer-deps / .npmrc legacy-peer-deps=true. Avoid --force.",
+    "output": {
+      "root_cause": "React version conflict during dependency installation because the project uses React 19, but a package (react-day-picker) only supports up to React 18, causing a dependency tree resolution error.",
+      "explanation": "npm (the package manager) strict dependency checks fail because a library in your project expects an older version of React (React 18 or lower) than the one installed (React 19).",
+      "fix_steps": [
+        "Open your Lovable project chat.",
+        "Paste the provided prompt to let the AI fix the package incompatibility or downgrade React safely."
+      ],
+      "tool_prompt": "Diagnose the dependency conflict causing 'npm ERR! ERESOLVE unable to resolve dependency tree' related to react-day-picker and React 19. Update package.json to use a version of react-day-picker compatible with React 19, or pass the legacy-peer-deps flag configuration if needed, without rewriting unrelated files. Verify by ensuring npm install completes successfully.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "dependency_error",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "23": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "lovable",
+    "error": "Google sign-in worked in preview but after I published to my custom domain I get: Error 400: redirect_uri_mismatch. You can't sign in to this app because it doesn't comply with Google's OAuth 2.0 policy.",
+    "source": "https://apprescuedesk.com/blog/lovable-error-400-redirect-uri-mismatch-after-publish",
+    "known_fix": "Google OAuth client's Authorized redirect URIs must contain exact Supabase callback https://<ref>.supabase.co/auth/v1/callback; also add custom domain to Supabase Site URL/Redirect URLs.",
+    "output": {
+      "root_cause": "The Google Cloud Console (OAuth credentials) does not have your new custom domain listed as an authorized redirect URI, causing Google to block the login attempt once you left the preview domain.",
+      "explanation": "When you published your app to a custom domain, the web address changed from your temporary preview link to your permanent website address. Google requires you to explicitly register every web address that is allowed to handle sign-ins for security reasons.",
+      "fix_steps": [
+        "Go to the Google Cloud Console (console.cloud.google.com) where you originally set up your Google login.",
+        "Navigate to APIs & Services > Credentials and click on your OAuth 2.0 Client ID.",
+        "Look for the section called 'Authorized redirect URIs' and click 'Add URI'.",
+        "Add the exact URL of your published custom domain followed by the callback path (usually https://your-custom-domain.com/__/auth/handler or your Supabase/backend callback URL).",
+        "Save the changes and wait a few minutes for Google to update."
+      ],
+      "tool_prompt": "Please check our authentication configuration to ensure it dynamically uses the correct site URL and redirect URL for Supabase/Firebase Auth, pulling from window.location.origin rather than a hardcoded preview URL. Do not rewrite unrelated UI components.",
+      "confidence": 0.95,
+      "missing_info": [
+        "The exact backend authentication provider being used (Supabase, Firebase, or custom)"
+      ],
+      "category": "Authentication",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "24": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "cursor",
+    "error": "Every chat in Cursor fails with: We're having trouble connecting to the model provider. This might be temporary - please try again in a moment. Been happening all day, other sites work.",
+    "source": "https://forum.cursor.com/t/again-were-having-trouble-connecting-to-the-model-provider-this-might-be-temporary-please-try-again-in-a-moment/151553",
+    "known_fix": "Client-side config: disable MCP servers, turn off Override OpenAI Base URL / custom API keys, set HTTP compatibility mode to HTTP/1.1, run network diagnostics, try without VPN. Could also be provider outage.",
+    "output": {
+      "root_cause": "Cursor is failing to communicate with the model provider API, which is typically caused by local network interference (such as a corporate VPN, strict firewall, or corporate proxy blocking WebSocket/HTTPS traffic to Cursor's backend), outdated Cursor software, or temporary upstream outages at the model provider level.",
+      "explanation": "Your Cursor editor is trying to reach external servers to talk to the AI models, but something on your network or computer is blocking that connection, or your app version is out of sync.",
+      "fix_steps": [
+        "Check if you are running a VPN, corporate firewall, or strict antivirus/proxy, and try temporarily disabling it to see if chats start working.",
+        "Check the official Cursor status page or X (Twitter) to see if there is an ongoing global outage with their AI providers.",
+        "Ensure your Cursor application is fully updated to the latest version by clicking on the settings menu or restarting the app."
+      ],
+      "tool_prompt": "I am experiencing a network connection error in Cursor ('We're having trouble connecting to the model provider'). Since this is an environment or network configuration issue rather than a code bug, please help me troubleshoot network settings, check for proxy configurations, or verify if my current version of Cursor needs any specific network permissions.",
+      "confidence": 0.8,
+      "missing_info": [
+        "Whether the user is on a corporate network or VPN",
+        "Cursor application version"
+      ],
+      "category": "environment",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "cursor"
+    }
+  },
+  "25": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "bolt",
+    "error": "Every Supabase request from my deployed app returns 401 {\"message\":\"Invalid API key\"}. It used to work.",
+    "source": "https://dylancaponi.github.io/vibe-code-rescue/fixes/supabase-invalid-api-key.html",
+    "known_fix": "Deployed app has missing/stale/rotated/mismatched Supabase key. Copy project URL + publishable/anon key from same project into env vars and redeploy. Never use service_role/secret in browser.",
+    "output": {
+      "root_cause": "The Supabase API key (anon key) is missing, expired, or incorrectly set in your deployed environment variables on your hosting provider.",
+      "explanation": "When you deploy your app, it needs secret keys to talk to your database. If those keys weren't copied over to your hosting provider's settings, or if they were changed in Supabase without updating the deployment, the app gets a '401 Unauthorized' error because Supabase doesn't recognize the key.",
+      "fix_steps": [
+        "Go to your Supabase Dashboard, open your project settings, and find your Project API keys (specifically the 'anon' or 'public' key).",
+        "Go to your hosting provider's dashboard (where your Bolt app is deployed, such as Netlify, Vercel, or StackBlitz) and open the Environment Variables settings.",
+        "Ensure the variables for your Supabase URL and Supabase Anon Key match your current Supabase project values and are correctly named.",
+        "Trigger a fresh deployment of your app so it loads the updated environment variables."
+      ],
+      "tool_prompt": "Diagnose why Supabase requests are returning a 401 Invalid API key error. Check the Supabase client initialization file (usually in `src/integrations/supabase/client.ts` or similar) to ensure it correctly reads the environment variables using Vite syntax (import.meta.env.VITE_SUPABASE_URL and import.meta.env.VITE_SUPABASE_ANON_KEY). Do not modify unrelated files or change any security settings.",
+      "confidence": 0.9,
+      "missing_info": [
+        "Hosting provider name (e.g., Vercel, Netlify)"
+      ],
+      "category": "Authentication / Environment Variables",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "bolt"
+    }
+  },
+  "26": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "lovable",
+    "error": "My edge function always returns 401 {\"code\":401,\"message\":\"Invalid JWT\"} since I switched my project to the new sb_publishable API keys.",
+    "source": "https://supabase.com/docs/guides/troubleshooting/edge-function-401-error-response",
+    "known_fix": "New API keys aren't JWTs; the function's built-in verify_jwt check rejects them. Set verify_jwt=false for that function and authenticate inside the function code.",
+    "output": {
+      "root_cause": "The Supabase Edge Function is using the legacy `auth.getUser()` or strict JWT verification which fails when called from the frontend using the new `sb_publishable` API key format, because these keys are designed for anonymous/public client requests without a full user session token in the Authorization header.",
+      "explanation": "When you switched to the new Supabase publishable keys, the way your frontend authenticates with Edge Functions changed. Your Edge Function is likely trying to decode a user session JWT that is no longer being sent or format-validated the same way, resulting in a '401 Invalid JWT' error.",
+      "fix_steps": [
+        "Open your Lovable project and locate the backend Edge Function that is returning the 401 error.",
+        "Copy the prompt below and paste it directly into your Lovable chat to have the AI fix the authentication handling in the Edge Function."
+      ],
+      "tool_prompt": "Please diagnose our Supabase Edge Function that is returning a '401 Invalid JWT' error since switching to the new sb_publishable API keys. Update the Edge Function's authorization header handling so it correctly validates requests coming from the frontend using the new publishable key setup, without bypassing security or disabling Row Level Security. Do not rewrite unrelated files.",
+      "confidence": 0.9,
+      "missing_info": [],
+      "category": "backend",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  },
+  "27": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "v0",
+    "error": "Vercel build fails: Type error: Page \"app/page.tsx\" does not match the required types of a Next.js Page. \"Hero\" is not a valid Page export field.",
+    "source": "https://github.com/vercel/next.js/discussions/48724",
+    "known_fix": "page.tsx has an extra named export; pages may only default-export the page. Move the component to a separate file and import it.",
+    "output": {
+      "root_cause": "An invalid component named 'Hero' is being exported from a Next.js App Router page file ('app/page.tsx'), which only allows specific reserved exports like 'default' or metadata.",
+      "explanation": "In Next.js, the files inside the 'app' folder are special. When you export something named 'Hero' from a page file alongside or instead of the standard default export, Next.js gets confused because 'Hero' is not a recognized page configuration or component export.",
+      "fix_steps": [
+        "Open your project in v0.",
+        "Navigate to the 'app/page.tsx' file.",
+        "Check the bottom or top of the file for an extra 'export function Hero()' or 'export const Hero = ...'.",
+        "Change 'export function Hero' to just 'function Hero' or move the Hero component into its own separate file inside a 'components' folder and import it back into the page.",
+        "Ensure the main page component is exported correctly as the default export ('export default function Page()')."
+      ],
+      "tool_prompt": "Please fix the Vercel build error in app/page.tsx. The error is: 'Hero' is not a valid Page export field. Remove the invalid export 'Hero' from app/page.tsx, keep the component internal or move it to a separate file in a components directory, and ensure app/page.tsx only uses 'export default function Page()'. Do not rewrite unrelated files.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "Build Error",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "v0"
+    }
+  },
+  "28": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "v0",
+    "error": "Build on Vercel fails: ReferenceError: localStorage is not defined. The component has 'use client' at the top. const saved = localStorage.getItem('cart')",
+    "source": "https://sentry.io/answers/referenceerror-localstorage-is-not-defined-in-next-js/",
+    "known_fix": "Client components still prerender on the server; localStorage doesn't exist there. Move access into useEffect (or dynamic import ssr:false).",
+    "output": {
+      "root_cause": "Server-Side Rendering (SSR) execution error where browser-only APIs like 'localStorage' are accessed during the server build or initial server-side render phase, even inside components marked with 'use client'.",
+      "explanation": "When your app builds on Vercel, it runs parts of the code on a server where the browser environment doesn't exist. Because 'localStorage' only exists inside a web browser, trying to read it before the page has finished loading on the screen causes the build to crash with a 'ReferenceError'.",
+      "fix_steps": [
+        "Open your project in v0.",
+        "Locate the file where the cart state is initialized using localStorage.",
+        "Copy the tool prompt below and paste it into v0 to fix the issue."
+      ],
+      "tool_prompt": "Diagnose the codebase to find where `localStorage` is being accessed during initial render or component setup without checking if `window` is defined first. Update the cart state initialization to safely check if `typeof window !== 'undefined'` before accessing `localStorage`, or wrap the read inside a `useEffect` hook so it only runs on the client side after the initial render. Do not rewrite unrelated files or components, and do not remove the 'use client' directive.",
+      "confidence": 0.95,
+      "missing_info": [],
+      "category": "Build/Deployment Error",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "v0"
+    }
+  },
+  "29": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "replit",
+    "error": "My chatbot stopped working. Logs: openai.RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details.', 'type': 'insufficient_quota', 'code': 'insufficient_quota'}}. I pay for ChatGPT Plus.",
+    "source": "https://inferenceapis.com/reference/errors/openai-429-insufficient-quota-exceeded-current-quota",
+    "known_fix": "Billing/quota issue, not rate limit: API has no prepaid credits (ChatGPT Plus doesn't include API). Add API credits / raise spend limit for the key's org/project; don't retry.",
+    "output": {
+      "root_cause": "OpenAI API rate limit and quota exceeded (Error 429: insufficient_quota).",
+      "explanation": "Your chatbot is using the OpenAI API, which requires its own prepaid account balance and billing setup. Having a ChatGPT Plus subscription (which is for the web interface and chatgpt.com) does not give you free API credits to power custom applications.",
+      "fix_steps": [
+        "Go to the OpenAI platform website (platform.openai.com) and log in with your account.",
+        "Click on Settings or Billing, then select 'Add to credit balance' to deposit funds (usually a minimum of $5 or $10 is required).",
+        "Set up a payment method and ensure your account has an active positive balance.",
+        "If you previously generated an API key and hit a hard spending limit, check your 'Limits' settings under Billing to make sure your monthly usage cap allows requests."
+      ],
+      "tool_prompt": "My chatbot is throwing an OpenAI RateLimitError: 'insufficient_quota' (Error 429). The account balance on the OpenAI API platform has been topped up. Please do not change any code, just verify that the OpenAI client is properly initialized and catching any future rate-limit or quota errors gracefully so the app displays a friendly message to the user instead of crashing.",
+      "confidence": 0.99,
+      "missing_info": [],
+      "category": "API & External Services",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "replit"
+    }
+  },
+  "30": {
+    "model": "gemini-3.5-flash-lite",
+    "tool": "lovable",
+    "error": "Lovable keeps saying 'I fixed the login bug' but it's still broken; I've burned 400 credits in two weeks on the same auth error and every fix breaks something else.",
+    "source": "https://afterbuildlabs.com/platforms/lovable-developer/problems/stop-burning-credits",
+    "known_fix": "Regression/fix loop: stop prompting, revert to last working version (or export to GitHub and find last good commit), diagnose root cause in Plan mode with exact error, patch one thing. Not enough info for specific root cause -> should be low confidence / ask for the actual error.",
+    "output": {
+      "root_cause": "The AI is stuck in a loop of applying superficial surface-level patches to authentication state management without addressing the underlying token lifecycle or routing logic, causing regression cycles.",
+      "explanation": "When an AI builder repeatedly tries to fix an authentication bug and fails while burning through credits, it usually means it is guessing at symptoms (like changing UI button handlers or redirect hooks) rather than checking the core session management, such as how Supabase/Firebase auth state persistence or Protected Route wrappers are configured.",
+      "fix_steps": [
+        "Stop letting the AI make random code changes to login files.",
+        "Open your browser's Developer Tools (F12) -> Console / Network tab, try to log in, and copy the exact red error message or failed network request.",
+        "Paste the tool prompt below directly into Lovable to force a structured, step-by-step diagnostic approach instead of a blind rewrite."
+      ],
+      "tool_prompt": "Stop! Do not write code yet. First, read the browser console and network logs to diagnose the exact root cause of the authentication failure. Check our auth provider setup (Supabase/Firebase) and session persistence. Identify why previous fixes failed, and apply a single, isolated fix to the auth state provider or route guard without modifying unrelated files or UI components. Verify by testing the sign-in flow end-to-end.",
+      "confidence": 0.85,
+      "missing_info": [
+        "Exact browser console error message",
+        "Authentication provider being used (e.g., Supabase, Firebase, custom backend)"
+      ],
+      "category": "authentication",
+      "escalate": false,
+      "secret_warning": null,
+      "tool": "lovable"
+    }
+  }
+}

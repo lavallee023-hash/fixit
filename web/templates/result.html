@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block body %}
+{% if r.secret_warning %}<p class="warn">🔑 {{ r.secret_warning }}</p>{% endif %}
+<div class="card"><h2 style="margin-top:0">Root cause</h2><p><b>{{ r.root_cause }}</b></p><p>{{ r.explanation }}</p></div>
+<div class="card"><h2 style="margin-top:0">Fix it, step by step</h2><ol>{% for s in r.fix_steps %}<li>{{ s }}</li>{% endfor %}</ol></div>
+<div class="card"><h2 style="margin-top:0">Paste this into {{ r.tool|capitalize }}</h2><pre id="p">{{ r.tool_prompt }}</pre>
+<button onclick="navigator.clipboard.writeText(document.getElementById('p').innerText);this.innerText='Copied ✓'">Copy prompt</button></div>
+<div class="card">Confidence: <b>{{ '%d' % (r.confidence*100) }}%</b>
+{% if qid %}<p class="warn">This one's tricky ({{ r.escalate_reasons|join(', ') }}). A human (Brian) will review case <b>#{{ qid }}</b> and email you. Meanwhile, try the steps above.</p>{% endif %}
+{% if r.missing_info %}<p class="small">Would help: {{ r.missing_info|join('; ') }}</p>{% endif %}
+<p class="small">{{ left }} free fixes left this month.</p></div>
+<a class="btn" href="/">Diagnose another</a>{% endblock %}

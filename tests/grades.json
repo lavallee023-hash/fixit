@@ -1,0 +1,272 @@
+[
+ {
+  "id": 1,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash",
+  "source": "https://dylancaponi.github.io/vibe-code-rescue/fixes/supabase-row-level-security-policy-error.html"
+ },
+ {
+  "id": 2,
+  "grade": "FAIL",
+  "note": "Missed that .select() after insert needs a SELECT policy",
+  "confidence": 0.85,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://ptkd.com/journal/lovable-dev-supabase-rls-error-403"
+ },
+ {
+  "id": 3,
+  "grade": "FAIL",
+  "note": "Missed SELECT policy on storage.objects (INSERT...RETURNING)",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://supabase.com/docs/guides/troubleshooting/storage-error-403-forbidden-new-row-violates-row-level-security-policy-on-upload-a94384"
+ },
+ {
+  "id": 4,
+  "grade": "PARTIAL",
+  "note": "Right cause (no SELECT policy) but suggests 'temporarily allow public read' - unsafe-ish",
+  "confidence": 0.9,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://supabase.com/docs/guides/troubleshooting/why-is-my-select-returning-an-empty-data-array-and-i-have-data-in-the-table-xvOPgx"
+ },
+ {
+  "id": 5,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.7-flash",
+  "source": "https://formgong.com/en/blog/supabase-edge-function-cors/"
+ },
+ {
+  "id": 6,
+  "grade": "FAIL",
+  "note": "Said 'add CORS headers'; real cause is function crashing (missing secret) - check logs",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://formgong.com/en/blog/supabase-edge-function-cors/"
+ },
+ {
+  "id": 7,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.7-flash",
+  "source": "https://www.reddit.com/r/lovable/comments/1n88oat/the_power_of_the_25_why_analysis/"
+ },
+ {
+  "id": 8,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.7-flash",
+  "source": "https://www.reddit.com/r/boltnewbuilders/comments/1ho10qs/unable_to_deploy_project_via_bolt_to_netlify/"
+ },
+ {
+  "id": 9,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.85,
+  "escalate": false,
+  "model": "gemini-3.7-flash",
+  "source": "https://www.netlify.com/knowledge-base/deploy-your-bolt-app-to-netlify/"
+ },
+ {
+  "id": 10,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.6-flash",
+  "source": "https://www.netlify.com/knowledge-base/deploy-your-bolt-app-to-netlify/"
+ },
+ {
+  "id": 11,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.98,
+  "escalate": false,
+  "model": "gemini-3.6-flash",
+  "source": "https://stackoverflow.com/questions/75846073/vercel-reactjs-vite-returning-404-on-page-refresh"
+ },
+ {
+  "id": 12,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://www.netlify.com/knowledge-base/deploy-your-bolt-app-to-netlify/"
+ },
+ {
+  "id": 13,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://www.rapidevelopers.com/ai-build-errors/cursor-module-not-found"
+ },
+ {
+  "id": 14,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://matevalidate.com/guide/nextjs-hydration-error"
+ },
+ {
+  "id": 15,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://docs.replit.com/help/networking-and-app-errors"
+ },
+ {
+  "id": 16,
+  "grade": "PARTIAL",
+  "note": "Generic 'ports must match'; didn't spot app on 80 vs localPort 8000",
+  "confidence": 0.9,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://stackoverflow.com/questions/79391440/problem-deploying-python-fastapi-on-replit-with-sentence-transformers"
+ },
+ {
+  "id": 17,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://docs.replit.com/build/troubleshooting"
+ },
+ {
+  "id": 18,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://vite.dev/guide/env-and-mode"
+ },
+ {
+  "id": 19,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://supabase.com/docs/guides/auth/redirect-urls"
+ },
+ {
+  "id": 20,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.98,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://docs.stripe.com/webhooks/signature?lang=node"
+ },
+ {
+  "id": 21,
+  "grade": "PARTIAL",
+  "note": "Generic useEffect deps advice; missed derived-state -> useMemo",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://askvibe.dev/q/2gqhmxu2d4-maximum-update-depth-exceeded-after-cursor-added-a-filter-to-my-table"
+ },
+ {
+  "id": 22,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://dylancaponi.github.io/vibe-code-rescue/fixes/npm-install-eresolve.html"
+ },
+ {
+  "id": 23,
+  "grade": "PARTIAL",
+  "note": "Points to Google redirect URIs but suggests custom-domain callback; correct is Supabase /auth/v1/callback",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://apprescuedesk.com/blog/lovable-error-400-redirect-uri-mismatch-after-publish"
+ },
+ {
+  "id": 24,
+  "grade": "PARTIAL",
+  "note": "VPN/status/update; missed MCP / base-URL override / HTTP/1.1 fixes",
+  "confidence": 0.8,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://forum.cursor.com/t/again-were-having-trouble-connecting-to-the-model-provider-this-might-be-temporary-please-try-again-in-a-moment/151553"
+ },
+ {
+  "id": 25,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.9,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://dylancaponi.github.io/vibe-code-rescue/fixes/supabase-invalid-api-key.html"
+ },
+ {
+  "id": 26,
+  "grade": "FAIL",
+  "note": "Missed verify_jwt=false for new non-JWT keys",
+  "confidence": 0.9,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://supabase.com/docs/guides/troubleshooting/edge-function-401-error-response"
+ },
+ {
+  "id": 27,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://github.com/vercel/next.js/discussions/48724"
+ },
+ {
+  "id": 28,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.95,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://sentry.io/answers/referenceerror-localstorage-is-not-defined-in-next-js/"
+ },
+ {
+  "id": 29,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.99,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://inferenceapis.com/reference/errors/openai-429-insufficient-quota-exceeded-current-quota"
+ },
+ {
+  "id": 30,
+  "grade": "PASS",
+  "note": "",
+  "confidence": 0.85,
+  "escalate": false,
+  "model": "gemini-3.5-flash-lite",
+  "source": "https://afterbuildlabs.com/platforms/lovable-developer/problems/stop-burning-credits"
+ }
+]

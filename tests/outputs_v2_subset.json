@@ -1,0 +1,402 @@
+{
+ "2": {
+  "top_causes": [
+   {
+    "cause": "Missing or failing SELECT RLS policy on the 'posts' table while using .select() after .insert()",
+    "probability": 0.85
+   },
+   {
+    "cause": "The INSERT policy was created for the wrong role (e.g., 'anon' instead of 'authenticated')",
+    "probability": 0.1
+   },
+   {
+    "cause": "A trigger or foreign key relation on 'posts' fails an RLS check on another table",
+    "probability": 0.05
+   }
+  ],
+  "root_cause": "Chaining .select() or .single() onto an .insert() query executes an 'INSERT ... RETURNING *' statement in PostgreSQL. Even with a valid INSERT policy, Supabase requires a SELECT policy that grants permission to read the row back. Because no matching SELECT policy exists for the user, PostgreSQL rejects the operation with error 42501.",
+  "explanation": "When Lovable generates code like `supabase.from('posts').insert(row).select().single()`, it asks database to create the row and immediately return the created data. Under Row Level Security (RLS), returning the data requires permission to read (SELECT) that specific row. Even though your INSERT policy allows creating the record, the missing or mismatched SELECT policy blocks the read step, triggering a 403 / 42501 error on the entire transaction.",
+  "fix_steps": [
+   "Open your Supabase dashboard and navigate to 'Table Editor' or 'Authentication' -> 'Policies'.",
+   "Select the 'posts' table and check the existing policies.",
+   "Click 'Create Policy' (or 'New Policy') to add a SELECT policy.",
+   "Name it descriptive (e.g., 'Authenticated users can view posts' or 'Users can view their own posts').",
+   "Set Target Roles to 'authenticated' (or public if posts are publicly viewable).",
+   "Set the USING expression depending on your visibility rules: e.g., `auth.uid() = user_id` for personal posts, or `true` if all authenticated users can read posts.",
+   "Save the policy and test the insert again from your app.",
+   "Do NOT disable Row Level Security or make tables public to 'test' - add the specific policy instead."
+  ],
+  "tool_prompt": "In our Supabase database for the 'posts' table, the insert operation `supabase.from('posts').insert(row).select().single()` is failing with 42501 'new row violates row-level security policy' because the client chains `.select()`, which requires an active SELECT policy in addition to the existing INSERT policy.\n\nPlease diagnose our RLS policies on the 'posts' table:\n1. Check the existing RLS policies on 'posts' without [removed: never weaken security].\n2. Add or update the SELECT policy for the 'authenticated' role so that the creator can read their inserted row (e.g., using `auth.uid() = user_id` or your app's post-read visibility condition).\n3. If your client code does not strictly need the returned row immediately, you can also remove `.select().single()`, but ensure the proper SELECT RLS policy exists so future reads work correctly.\nDo not [removed: never weaken security], do not expose service_role keys in the client, and do not rewrite unrelated files.",
+  "confidence": 0.85,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "database",
+  "escalate": true,
+  "escalate_reasons": [
+   "unsafe advice removed"
+  ],
+  "secret_warning": null,
+  "tool": "lovable",
+  "model_used": "gemini:gemini-3.7-flash"
+ },
+ "3": {
+  "top_causes": [
+   {
+    "cause": "Missing or restrictive SELECT policy on storage.objects. Supabase Storage uploads use INSERT...RETURNING under the hood, which requires a SELECT policy matching the uploaded file alongside the INSERT policy.",
+    "probability": 0.85
+   },
+   {
+    "cause": "The file path structure in the upload code does not match the path check inside the INSERT policy (e.g., bucket name or folder path mismatch).",
+    "probability": 0.1
+   },
+   {
+    "cause": "User is unauthenticated or the auth token is not being passed correctly with the storage client request.",
+    "probability": 0.05
+   }
+  ],
+  "root_cause": "Supabase Storage uploads execute an INSERT with a RETURNING clause behind the scenes. Even if your INSERT policy passes, Supabase immediately tries to read back the newly created row. If there is no SELECT policy on 'storage.objects' that allows the user to read their newly uploaded file, Supabase throws a row-level security (403) error.",
+  "explanation": "When uploading a file, Supabase returns the file data right after inserting it. This requires the uploading user to have permission for both INSERT and SELECT on the file in storage.objects. If you only created an INSERT policy, the write succeeds internally but fails on the read back, triggering the 403 RLS error.",
+  "fix_steps": [
+   "Open your Supabase Dashboard and go to Storage -> Buckets -> click on your avatars bucket (or go to Database -> Tables -> storage.objects -> Policies).",
+   "Check if there is a SELECT policy for authenticated users. If missing, create a SELECT policy on storage.objects so users can read files in the avatar bucket (e.g., matching bucket_id = 'avatars' AND auth.uid() = owner or checking folder path).",
+   "Ensure your existing INSERT policy path condition (like storage.foldername(name)) matches the exact path structure your app generates during upload (e.g., user_id/avatar.png).",
+   "Do NOT disable Row Level Security or make tables public to 'test' - add the specific policy instead."
+  ],
+  "tool_prompt": "Fix the Supabase Storage upload error 'new row violates row-level security policy'. The user already has an INSERT policy, but Supabase Storage uploads execute an `INSERT ... RETURNING` query, which requires a matching SELECT policy on `storage.objects` to read back the uploaded file.\n\nPlease update or generate the required SQL migration to ensure both INSERT and SELECT policies exist for the avatars storage bucket on `storage.objects`:\n1. Ensure authenticated users have INSERT permission on `storage.objects` for bucket_id = 'avatars' (or the current avatar bucket name).\n2. Ensure authenticated users ALSO have SELECT permission on `storage.objects` for files in the same bucket where they are the owner (`auth.uid() = owner` or matching path).\n3. Check the frontend code where `supabase.storage.from(...).upload(...)` is called to verify the file path matches the RLS policy constraints.\nDO NOT [removed: never weaken security] or turn off RLS on storage.objects. DO NOT use service_role keys on the frontend.",
+  "confidence": 0.85,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "supabase_storage_rls",
+  "escalate": true,
+  "escalate_reasons": [
+   "unsafe advice removed"
+  ],
+  "secret_warning": null,
+  "tool": "bolt",
+  "model_used": "gemini:gemini-3.5-flash"
+ },
+ "4": {
+  "top_causes": [
+   {
+    "cause": "Row Level Security (RLS) is enabled on the 'projects' table, but there is no SELECT policy that grants permission for the current user role to read the rows.",
+    "probability": 0.9
+   },
+   {
+    "cause": "The user is not authenticated (not logged in), so the auth.uid() context is null and the SELECT policy filters out all rows.",
+    "probability": 0.08
+   },
+   {
+    "cause": "The client code is querying the wrong table name or schema.",
+    "probability": 0.02
+   }
+  ],
+  "root_cause": "Supabase Row Level Security (RLS) is enabled on the 'projects' table, but no SELECT policy exists to allow the current user or role to read the records. When RLS blocks reads without throwing an explicit error, Supabase successfully executes the query but returns an empty array ([]) instead of data.",
+  "explanation": "You can see the rows in the Supabase Table Editor because the Table Editor bypasses RLS when you view it as an administrator or database owner. However, your frontend application connects using a restricted user role (authenticated or anon), which requires an explicit SELECT policy to view any rows.",
+  "fix_steps": [
+   "Go to your Supabase Dashboard and navigate to Authentication > Policies (or Table Editor > projects > RLS).",
+   "Check if RLS is enabled on the 'projects' table.",
+   "Add a SELECT policy for the 'projects' table that permits reading rows based on your app's needs (for example, allowing users to read rows where user_id = auth.uid() or where the project is public).",
+   "Do NOT disable Row Level Security or make tables public to 'test' - add the specific policy instead."
+  ],
+  "tool_prompt": "Diagnose the database and code for the 'projects' table. Root cause: Supabase Row Level Security (RLS) is blocking reads because there is no SELECT policy for the 'projects' table, causing select('*') to return an empty array []. Please check the RLS policies on the 'projects' table in Supabase and ensure a proper SELECT policy exists for authenticated users (e.g., matching user_id = auth.uid()). Do not [removed: never weaken security] and do not rewrite unrelated files.",
+  "confidence": 0.9,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "Supabase RLS",
+  "escalate": true,
+  "escalate_reasons": [
+   "unsafe advice removed"
+  ],
+  "secret_warning": null,
+  "tool": "lovable",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ },
+ "6": {
+  "top_causes": [
+   {
+    "cause": "The Edge Function is crashing (likely due to a missing RESEND_API_KEY secret) and returning a 500 error which lacks CORS headers.",
+    "probability": 0.9
+   },
+   {
+    "cause": "The Edge Function code throws an unhandled exception during email generation before reaching the CORS header logic.",
+    "probability": 0.1
+   }
+  ],
+  "root_cause": "The Edge Function is crashing with a 500 Internal Server Error (most likely because the new RESEND_API_KEY secret hasn't been added to Supabase yet) and failing to include CORS headers in the error response, causing the browser to report a CORS error.",
+  "explanation": "When an Edge Function crashes (often because a required API key like RESEND_API_KEY is missing in your Supabase project settings), it returns a 500 error. Because the error happens before or outside your normal success response headers, the browser doesn't see the 'Access-Control-Allow-Origin' header and incorrectly blames CORS instead of the server-side crash.",
+  "fix_steps": [
+   "Go to your Supabase Dashboard > Project Settings > Edge Functions (or Secrets).",
+   "Add your Resend API key with the exact name RESEND_API_KEY.",
+   "Update your Edge Function code to ensure that any error responses (like catch blocks) also include your CORS headers so you can see the real error message instead of a fake CORS error."
+  ],
+  "tool_prompt": "Diagnose the Edge Function responsible for sending emails via Resend. The function is crashing with a 500 error (likely due to a missing RESEND_API_KEY secret or an unhandled exception), which triggers a CORS error in the browser. First, check the Supabase Edge Function logs to find the exact error message. Second, ensure that every error response (including catch blocks and failure states) explicitly includes the CORS headers. Do not touch unrelated files.",
+  "confidence": 0.9,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "supabase",
+  "escalate": false,
+  "escalate_reasons": [],
+  "secret_warning": null,
+  "tool": "lovable",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ },
+ "16": {
+  "top_causes": [
+   {
+    "cause": "Replit deployment configuration expects the app to bind to the port specified in .replit (8000), but the backend application code is starting on a different port (like 5000 or 3000), or the deployment target requires port 80/configured port to be actively bound.",
+    "probability": 0.85
+   },
+   {
+    "cause": "The start command in Replit deployment settings differs from the development run command, causing it to run a script that does not boot the server.",
+    "probability": 0.15
+   }
+  ],
+  "root_cause": "The Replit deployment environment expects your application to listen on the port defined in your configuration (port 8000), but your application code is either failing to start or is configured to run on a different port.",
+  "explanation": "Replit deployments strictly check that your app opens and serves traffic on the exact port configured in your `.replit` file (port 8000). The error logs show Uvicorn started on port 8000 locally, but Replit's external deployment system failed to detect traffic on the expected port or the application crashed immediately after startup.",
+  "fix_steps": [
+   "Open your project in Replit and check your backend startup file (e.g., `main.py`, `app.py`, or `server.py`).",
+   "Ensure your server code explicitly binds to `0.0.0.0` and port `8000`, matching your `.replit` port configuration.",
+   "Check the Deployment tab settings in Replit to verify that the run command matches your working development command.",
+   "Restart the deployment after verifying the port bindings in code."
+  ],
+  "tool_prompt": "Diagnose why the Replit deployment is failing with the port 8000 error. Check our backend entry point file (like main.py or app.py) and ensure Uvicorn or our web server is explicitly configured to bind to host '0.0.0.0' and port 8000 to match the .replit configuration. Do not modify unrelated frontend files.",
+  "confidence": 0.85,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "Deployment / Configuration",
+  "escalate": false,
+  "escalate_reasons": [],
+  "secret_warning": null,
+  "tool": "replit",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ },
+ "21": {
+  "top_causes": [
+   {
+    "cause": "A React useEffect hook is updating state without a proper dependency array, or a dependency is a newly created object/array/function on every render, causing an infinite re-render loop.",
+    "probability": 0.85
+   },
+   {
+    "cause": "The newly added table filter logic is deriving state or updating parent/child state directly during the render phase instead of inside an event handler or controlled effect.",
+    "probability": 0.15
+   }
+  ],
+  "root_cause": "Infinite re-render loop caused by state being updated inside a useEffect without proper dependencies, or where the filter function/object changes reference on every render and triggers the effect continuously.",
+  "explanation": "The 'Maximum update depth exceeded' error happens when React detects an endless loop of state updates. When Cursor added the table filter, it likely introduced a useEffect that updates a filtered list or search state, but either forgot the dependency array or included a variable (like an inline object or function) that changes on every single render, triggering the effect again infinitely.",
+  "fix_steps": [
+   "Open the component file where the table and the new filter were added by Cursor.",
+   "Locate all useEffect hooks inside that component.",
+   "Check if any useEffect calls a state setter function (like setFilteredData, setData, etc.) without a dependency array, or with a dependency that updates on every render (like an unmemoized array or object).",
+   "Ensure dependencies are primitive values (strings, numbers, booleans) or properly memoized usinguseMemo or useCallback if they are objects or functions.",
+   "Verify that state updates inside effects are strictly guarded by conditions so they don't fire on every render."
+  ],
+  "tool_prompt": "Diagnose the React 'Maximum update depth exceeded' error in the component where you just added the table filter. Check all useEffect hooks for missing or unstable dependency arrays causing infinite re-render loops due to state updates. Fix the dependency array or move the filtering logic safely. Do not rewrite unrelated files.",
+  "confidence": 0.85,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "frontend_react",
+  "escalate": false,
+  "escalate_reasons": [],
+  "secret_warning": null,
+  "tool": "cursor",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ },
+ "23": {
+  "top_causes": [
+   {
+    "cause": "Google Cloud Console missing the correct Supabase callback redirect URI.",
+    "probability": 0.95
+   },
+   {
+    "cause": "Supabase Auth URL settings do not match the new custom domain.",
+    "probability": 0.05
+   }
+  ],
+  "root_cause": "The Google OAuth configuration in the Google Cloud Console does not have your Supabase project's exact callback URL registered, or your custom domain was not added to Supabase's Site URL and Redirect URLs.",
+  "explanation": "When you published to your custom domain, the authentication flow still relies on your Supabase backend to handle the Google handshake. Google checks the redirect address being sent by Supabase against the list of authorized redirect URIs in your Google Cloud Console. If it doesn't match exactly (including the https:// and the project ID), Google blocks the sign-in with a 400 redirect_uri_mismatch error.",
+  "fix_steps": [
+   "1. Go to your Supabase Dashboard -> Authentication -> Providers -> Google, and copy the exact Callback URL (it should look like https://<your-project-ref>.supabase.co/auth/v1/callback).",
+   "2. Go to the Google Cloud Console (console.cloud.google.com) -> APIs & Services -> Credentials -> your OAuth 2.0 Client ID.",
+   "3. Under 'Authorized redirect URIs', make sure the Supabase callback URL from step 1 is added and saved.",
+   "4. Go back to Supabase Dashboard -> Authentication -> URL Configuration, and ensure your new custom domain is added to 'Site URL' and 'Redirect URLs' so users are sent back to your custom domain after logging in."
+  ],
+  "tool_prompt": "No code changes are needed in Lovable for this issue. This is an infrastructure configuration fix between Google Cloud Console and Supabase Dashboard. Please verify our Supabase Auth redirect settings if any custom redirect hooks are being used in the frontend code.",
+  "confidence": 0.95,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "Supabase",
+  "escalate": false,
+  "escalate_reasons": [],
+  "secret_warning": null,
+  "tool": "lovable",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ },
+ "24": {
+  "top_causes": [
+   {
+    "cause": "Cursor model provider API outage or degraded service status on Anthropic, OpenAI, or Cursor backend servers.",
+    "probability": 0.5
+   },
+   {
+    "cause": "Network routing, strict corporate firewall, or VPN/proxy blocking Cursor's specific API endpoints.",
+    "probability": 0.3
+   },
+   {
+    "cause": "Corrupted local Cursor authentication state or rate limiting on the user's account tier.",
+    "probability": 0.15
+   }
+  ],
+  "root_cause": "The connection error \"We're having trouble connecting to the model provider\" is typically caused by a temporary outage with Cursor's backend or the underlying AI model providers (OpenAI/Anthropic), network/firewall interference, or an expired authentication session in the Cursor app.",
+  "explanation": "Since this is happening inside the Cursor desktop application rather than a custom-coded web app, it is an environment or service-side issue rather than a code bug. Other websites working normally rules out total internet failure, but local firewalls or VPNs can still block specific long-lived WebSocket or API connections used by AI editors.",
+  "fix_steps": [
+   "Check the official Cursor status page (or Twitter/X) to see if there is an active outage with model providers.",
+   "Try temporarily disabling your VPN, proxy, or strict firewall/antivirus to see if network blocking is the cause.",
+   "Log out of your account inside the Cursor settings and log back in to refresh your authentication tokens.",
+   "Check if switching to a different model (e.g., switching from Claude 3.5 Sonnet to GPT-4o) bypasses the error.",
+   "Restart the Cursor application completely."
+  ],
+  "tool_prompt": "Not applicable, as this is a desktop application connectivity or service issue rather than a code problem.",
+  "confidence": 0.5,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "environment",
+  "escalate": true,
+  "escalate_reasons": [
+   "low confidence 0.50",
+   "top causes disagree",
+   "vague input (no concrete error)"
+  ],
+  "secret_warning": null,
+  "tool": "cursor",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ },
+ "26": {
+  "top_causes": [
+   {
+    "cause": "Supabase Edge Function's built-in JWT verification rejects the new non-JWT publishable/secret API keys",
+    "probability": 0.95
+   }
+  ],
+  "root_cause": "Supabase updated its API keys to new formats (like `sb_publishable_...`) which are no longer JWTs. Supabase Edge Functions have a built-in verification gate (`verify_jwt = true`) that expects a valid JWT in the Authorization header. When the client sends requests using the new keys, this gate fails and returns a 401 'Invalid JWT' before your function code even runs.",
+  "explanation": "Because the new Supabase keys are not JWTs, the platform's automatic JWT check blocks them. To fix this, you need to disable the built-in gateway verification for this specific Edge Function so that your function can handle authentication manually.",
+  "fix_steps": [
+   "Go to your Supabase Dashboard -> Edge Functions -> select your function.",
+   "Alternatively, update your `supabase/config.toml` file to disable JWT verification for this function by adding `verify_jwt = false` under `[functions.<your-function-name>]`.",
+   "If you are deploying via CLI, make sure to use `--no-verify-jwt` or configure your `config.toml` properly.",
+   "Inside your Edge Function code, make sure you manually validate the user's token using `supabase.auth.getUser(token)` if you need to secure it."
+  ],
+  "tool_prompt": "Please fix the 401 'Invalid JWT' error on my Edge Function caused by the new Supabase API keys. Update the configuration (such as supabase/config.toml or deployment settings) to set `verify_jwt = false` for this function so it stops rejecting the non-JWT publishable keys at the gateway level. Ensure my function code still properly validates user sessions using supabase.auth.getUser if authentication is required. Do not rewrite unrelated files.",
+  "confidence": 0.95,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "Supabase",
+  "escalate": false,
+  "escalate_reasons": [],
+  "secret_warning": null,
+  "tool": "lovable",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ },
+ "30": {
+  "top_causes": [
+   {
+    "cause": "The AI is guessing at frontend auth state or redirect URL configurations without checking Supabase Dashboard settings or the actual browser console network tab.",
+    "probability": 0.7
+   },
+   {
+    "cause": "Google OAuth redirect mismatch between Supabase and Google Cloud Console.",
+    "probability": 0.2
+   },
+   {
+    "cause": "Missing site URL or incorrect redirect URLs in Supabase Auth settings.",
+    "probability": 0.1
+   }
+  ],
+  "root_cause": "The AI builder is stuck in a loop because it lacks the actual error message from the browser console or network tab, leading it to blindly rewrite working authentication code and breaking things further.",
+  "explanation": "When an auth error persists despite many attempts, it is almost always an environment mismatch (like Supabase redirect URLs, Google Console settings, or missing environment variables) rather than a complex code bug. Because Lovable doesn't see your browser console or Supabase dashboard, it guesses at code fixes.",
+  "fix_steps": [
+   "Open your live app in Chrome or Safari, press F12 (or right-click -> Inspect), and go to the Console and Network tabs.",
+   "Trigger the login error again to see the exact red error message or failed network request.",
+   "Check your Supabase Dashboard under Authentication -> URL Configuration to ensure your Site URL and Redirect URLs match your Lovable preview/production domains.",
+   "Stop letting the AI blindly rewrite files. Give it the exact error log from your console using the prompt below."
+  ],
+  "tool_prompt": "Stop trying to guess the login bug and rewriting random files. First, diagnose the root cause by asking me to paste the exact browser console error and network request failure related to Supabase Auth. Do not modify any code until we inspect the exact error log together. Check our Supabase client initialization in src/integrations/supabase/client.ts and verify how auth state changes are being listened to in the app.",
+  "confidence": 0.5,
+  "input_quality": "vague",
+  "missing_info": [
+   "Exact browser console error message",
+   "Network tab response for the failed auth request",
+   "Auth provider being used (Email/Password vs Google/OAuth)"
+  ],
+  "category": "Supabase / Auth",
+  "escalate": true,
+  "escalate_reasons": [
+   "vague input (no concrete error)"
+  ],
+  "secret_warning": null,
+  "tool": "lovable",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ },
+ "1": {
+  "top_causes": [
+   {
+    "cause": "Lovable generated a Supabase insert that chains .select(), but there is no SELECT RLS policy for the messages table, or the INSERT policy blocks the return row.",
+    "probability": 0.85
+   },
+   {
+    "cause": "There is no INSERT policy at all on the messages table in Supabase.",
+    "probability": 0.15
+   }
+  ],
+  "root_cause": "Supabase 403 error (code 42501) on insert usually happens because Lovable's default code chains .select() after .insert() to return the newly created row. Even if you have an INSERT policy, Supabase also requires a matching SELECT policy for the user to read back that newly inserted row.",
+  "explanation": "When Lovable saves a form, it attempts to insert a row and immediately read it back using .select(). If your Supabase table only has an INSERT policy enabled (or incorrect SELECT policies), the insert is blocked or the returning read fails, resulting in a 403 Forbidden error.",
+  "fix_steps": [
+   "Go to your Supabase Dashboard and open the SQL Editor or Table Editor.",
+   "Check the RLS policies on the 'messages' table.",
+   "Ensure you have an INSERT policy that allows authenticated (or anon) users to insert rows where user_id = auth.uid() (or appropriate condition).",
+   "Ensure you ALSO have a SELECT policy on the 'messages' table that allows users to read rows they created (e.g., using (auth.uid() = user_id)). Without this SELECT policy, the .select() chained after .insert() will fail with 403.",
+   "Test saving the form again.",
+   "Do NOT disable Row Level Security or make tables public to 'test' - add the specific policy instead."
+  ],
+  "tool_prompt": "Fix the Supabase 403 error when saving messages. The root cause is that our Supabase insert on the 'messages' table is failing because Lovable chains .select() after .insert(), but the database lacks a matching SELECT policy for the newly created row (or the INSERT policy is missing). Please check our Supabase RLS policies for the 'messages' table to ensure both INSERT and SELECT policies are correctly configured for authenticated users, and adjust our frontend code or Supabase policies if necessary. Do not [removed: never weaken security] and do not modify unrelated files.",
+  "confidence": 0.85,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "Supabase RLS",
+  "escalate": true,
+  "escalate_reasons": [
+   "unsafe advice removed"
+  ],
+  "secret_warning": null,
+  "tool": "lovable",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ },
+ "20": {
+  "top_causes": [
+   {
+    "cause": "Express parsed the raw request body into JSON using app.use(express.json()) before the Stripe webhook handler, destroying the exact byte stream required for signature verification.",
+    "probability": 0.95
+   },
+   {
+    "cause": "The Stripe webhook signing secret (STRIPE_WEBHOOK_SECRET) is incorrect or missing in the environment variables.",
+    "probability": 0.05
+   }
+  ],
+  "root_cause": "Express middleware (app.use(express.json())) parses the incoming body as a JSON object before it reaches the Stripe webhook route. Stripe's signature verification requires the raw, unparsed request body string (Buffer) to calculate and verify the cryptographic signature.",
+  "explanation": "When Stripe sends a webhook, it signs the exact raw text of the payload. If any middleware parses the body into JSON beforehand, the formatting and spacing change, causing the signature check to fail with a 400 error.",
+  "fix_steps": [
+   "Open your backend server file (usually server.js, index.js, or your webhook route file).",
+   "Ensure that the specific Stripe webhook route is defined BEFORE app.use(express.json()), OR use express.raw({ type: 'application/json' }) specifically for the webhook route.",
+   "Pass req.rawBody or the raw request buffer to stripe.webhooks.constructEvent() instead of req.body."
+  ],
+  "tool_prompt": "Fix the Stripe webhook signature verification error in our Express backend. The root cause is that app.use(express.json()) is parsing the raw request body before Stripe can verify the signature. Please update the Stripe webhook route to capture the raw request body using express.raw({ type: 'application/json' }) and pass that raw body directly into stripe.webhooks.constructEvent(). Do not alter unrelated routes, and verify that the Stripe signing secret environment variable is accessed correctly.",
+  "confidence": 0.95,
+  "input_quality": "clear",
+  "missing_info": [],
+  "category": "backend",
+  "escalate": false,
+  "escalate_reasons": [],
+  "secret_warning": null,
+  "tool": "cursor",
+  "model_used": "gemini:gemini-3.5-flash-lite"
+ }
+}
