@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run ONCE in a PythonAnywhere Bash console (free account): bash <(curl -s https://raw.githubusercontent.com/lavallee023-hash/fixit/main/deploy/pythonanywhere/setup.sh)
+# Run ONCE in a PythonAnywhere Bash console (free account): bash <(curl -s https://raw.githubusercontent.com/lavallee023-hash/fixit/master/deploy/pythonanywhere/setup.sh)
 set -e
 cd ~
 [ -d fixit ] && (cd fixit && git pull) || git clone https://github.com/lavallee023-hash/fixit.git

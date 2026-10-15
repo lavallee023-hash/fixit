@@ -1,7 +1,7 @@
 # To enable: copy to .github/workflows/ (needs a token with workflow scope). Auto-deploy on push: pulls latest code on PythonAnywhere and reloads the web app.
 # Needs repo secrets PA_USERNAME and PA_API_TOKEN (PythonAnywhere -> Account -> API token). Skips if unset.
 name: deploy-pythonanywhere
-on: { push: { branches: [main] }, workflow_dispatch: {} }
+on: { push: { branches: [master] }, workflow_dispatch: {} }
 jobs:
   deploy:
     runs-on: ubuntu-latest
