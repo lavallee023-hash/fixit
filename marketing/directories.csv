@@ -1,39 +1,77 @@
-priority,name,submission_url,http_status,cost,needs_account,email_signup,difficulty,type
-1,"Google Search Console",https://search.google.com/search-console,200,"free","yes (Google acct)","no - Google acct",easy,search
-2,"Bing Webmaster Tools",https://www.bing.com/webmasters,200,"free","yes (MS/Google acct)","partial",easy,search
-3,"IndexNow (via Bing/API)",https://www.indexnow.org,200,"free","no (key file on site)","n/a",easy,search
-4,"Yandex Webmaster",https://webmaster.yandex.com,200,"free","yes","yes",easy,search
-5,"Product Hunt",https://www.producthunt.com/posts/new,200,"free","yes","yes",medium,launch
-6,"Hacker News Show HN",https://news.ycombinator.com/submit,200,"free","yes","yes (no email needed)",medium,community
-7,"Reddit r/SideProject",https://www.reddit.com/r/SideProject/submit,403,"free","yes","yes",easy,community
-8,"Indie Hackers",https://www.indiehackers.com/products,200,"free","yes","yes",easy,community
-9,"DEV.to",https://dev.to/enter,200,"free","yes","yes",easy,community
-10,"Hashnode",https://hashnode.com/onboard,200,"free","yes","yes",easy,community
-11,"BetaList",https://betalist.com/submit,200,"free (slow queue) / paid expedite","yes","EXISTING ACCOUNT",easy,launch
-12,"SaaSHub",https://www.saashub.com/submit,200,"free","yes","EXISTING ACCOUNT",easy,saas
-13,"AlternativeTo",https://alternativeto.net/manage/new,403,"free","yes","EXISTING ACCOUNT",easy,saas
-14,"StartupInspire",https://www.startupinspire.com/submit-startup,200,"free","yes","EXISTING ACCOUNT",easy,launch
-15,"ToolFame",https://toolfame.com/submit,200,"free","yes","EXISTING ACCOUNT",easy,ai-dir
-16,"Fazier",https://fazier.com/launch,200,"free tier","yes","EXISTING ACCOUNT",easy,launch
-17,"Dang.ai",https://dang.ai/submit,200,"free (backlink) / paid","yes","EXISTING ACCOUNT",easy,ai-dir
-18,"ToolAI",https://toolai.io/submit,200,"free","yes","EXISTING ACCOUNT",easy,ai-dir
-19,"ToolScout",https://toolscout.ai/submit,200,"free","yes","EXISTING ACCOUNT",easy,ai-dir
-20,"TinyLaunch",https://www.tinylaunch.com,200,"free","yes","EXISTING ACCOUNT",easy,launch
-21,"LaunchingNext",https://www.launchingnext.com/submit/,200,"free","no","EXISTING ACCOUNT",easy,launch
-22,"ToolPilot",https://www.toolpilot.ai/pages/submit-your-ai-tool,200,"free","yes","EXISTING ACCOUNT",easy,ai-dir
-23,"Uneed",https://www.uneed.best/submit-a-tool,200,"free (queue)","yes","yes",easy,launch
-24,"Peerlist Launchpad",https://peerlist.io/launchpad,200,"free","yes","yes",medium,launch
-25,"DevHunt",https://devhunt.org,200,"free","yes (GitHub)","no - GitHub login",easy,launch
-26,"Microlaunch",https://microlaunch.net,200,"free","yes","yes",easy,launch
-27,"Launching.io / OpenHunts",https://openhunts.com,200,"free","yes","yes",easy,launch
-28,"SideProjectors",https://www.sideprojectors.com/project/new,200,"free","yes","yes",easy,launch
-29,"Startup Stash",https://startupstash.com/add-listing/,200,"free","yes","yes",easy,launch
-30,"StartupBase",https://startupbase.io,200,"free","yes","yes",easy,launch
-31,"Futurepedia",https://www.futurepedia.io/submit-tool,404,"free basic/paid","yes","yes",medium,ai-dir
-32,"There's An AI For That",https://theresanaiforthat.com/submit/,403,"paid mostly","yes","yes",hard,ai-dir
-33,"Insidr AI tools",https://www.insidr.ai/submit-tools/,200,"free","no","n/a",easy,ai-dir
-34,"AI Tools Directory (aitoolsdirectory.com)",https://aitoolsdirectory.com/submit-tool,200,"free","no","n/a",easy,ai-dir
-35,"TopAI.tools",https://topai.tools/submit,200,"free/paid","no","n/a",easy,ai-dir
-36,"AItoolnet",https://www.aitoolnet.com/submit,403,"free","yes","yes",easy,ai-dir
-37,"AI Valley",https://aivalley.ai/submit-tool/,200,"free","no","n/a",easy,ai-dir
-38,"Toolify.ai",https://www.toolify.ai/submit,403,"paid (free w/ backlink sometimes)","yes","yes",medium,ai-dir
+priority,name,submission_url,http_status,cost,needs_account,email_signup,difficulty,type,notes
+1,Google Search Console,https://search.google.com/search-console,200,free,yes (Google acct),no - Google acct,easy,search,
+2,Bing Webmaster Tools,https://www.bing.com/webmasters,200,free,yes (MS/Google acct),partial,easy,search,
+3,IndexNow (via Bing/API),https://www.indexnow.org,200,free,no (key file on site),n/a,easy,search,
+4,Yandex Webmaster,https://webmaster.yandex.com,200,free,yes,yes,easy,search,
+5,Product Hunt,https://www.producthunt.com/posts/new,200,free,yes,yes,medium,launch,
+6,Hacker News Show HN,https://news.ycombinator.com/submit,200,free,yes,yes (no email needed),medium,community,
+7,Reddit r/SideProject,https://www.reddit.com/r/SideProject/submit,403,free,yes,yes,easy,community,403 = blocks bots; loads in browser
+8,Indie Hackers,https://www.indiehackers.com/products,200,free,yes,yes,easy,community,
+9,DEV.to,https://dev.to/enter,200,free,yes,yes,easy,community,
+10,Hashnode,https://hashnode.com/onboard,200,free,yes,yes,easy,community,
+11,BetaList,https://betalist.com/submit,200,free (slow queue) / paid expedite,yes,EXISTING ACCOUNT,easy,launch,
+12,SaaSHub,https://www.saashub.com/submit,200,free,yes,EXISTING ACCOUNT,easy,saas,
+13,AlternativeTo,https://alternativeto.net/manage/new,403,free,yes,EXISTING ACCOUNT,easy,saas,403 = blocks bots; loads in browser
+14,StartupInspire,https://www.startupinspire.com/submit-startup,200,free,yes,EXISTING ACCOUNT,easy,launch,
+15,ToolFame,https://toolfame.com/submit,200,free,yes,EXISTING ACCOUNT,easy,ai-dir,
+16,Fazier,https://fazier.com/launch,200,free tier,yes,EXISTING ACCOUNT,easy,launch,
+17,Dang.ai,https://dang.ai/submit,200,free (backlink) / paid,yes,EXISTING ACCOUNT,easy,ai-dir,
+18,ToolAI,https://toolai.io/submit,200,free,yes,EXISTING ACCOUNT,easy,ai-dir,
+19,ToolScout,https://toolscout.ai/submit,200,free,yes,EXISTING ACCOUNT,easy,ai-dir,
+20,TinyLaunch,https://www.tinylaunch.com,200,free,yes,EXISTING ACCOUNT,easy,launch,
+21,LaunchingNext,https://www.launchingnext.com/submit/,200,free,no,EXISTING ACCOUNT,easy,launch,
+22,ToolPilot,https://www.toolpilot.ai/pages/submit-your-ai-tool,200,free,yes,EXISTING ACCOUNT,easy,ai-dir,
+23,Uneed,https://www.uneed.best/submit-a-tool,200,free (queue),yes,yes,easy,launch,
+24,Peerlist Launchpad,https://peerlist.io/launchpad,200,free,yes,yes,medium,launch,
+25,DevHunt,https://devhunt.org,200,free,yes (GitHub),no - GitHub login,easy,launch,
+26,Microlaunch,https://microlaunch.net,200,free,yes,yes,easy,launch,
+27,Launching.io / OpenHunts,https://openhunts.com,200,free,yes,yes,easy,launch,
+28,SideProjectors,https://www.sideprojectors.com/project/new,200,free,yes,yes,easy,launch,
+29,Startup Stash,https://startupstash.com/add-listing/,200,free,yes,yes,easy,launch,
+30,StartupBase,https://startupbase.io,200,free,yes,yes,easy,launch,
+31,Futurepedia,https://www.futurepedia.io,200,free basic/paid,yes,yes,medium,ai-dir,submit form linked from homepage
+32,There's An AI For That,https://theresanaiforthat.com/submit/,403,paid mostly,yes,yes,hard,ai-dir,403 = blocks bots; loads in browser
+33,Insidr AI tools,https://www.insidr.ai/submit-tools/,200,free,no,n/a,easy,ai-dir,
+34,AI Tools Directory (aitoolsdirectory.com),https://aitoolsdirectory.com/submit-tool,200,free,no,n/a,easy,ai-dir,
+35,TopAI.tools,https://topai.tools/submit,200,free/paid,no,n/a,easy,ai-dir,
+36,AItoolnet,https://www.aitoolnet.com/submit,403,free,yes,yes,easy,ai-dir,403 = blocks bots; loads in browser
+37,AI Valley,https://aivalley.ai/submit-tool/,200,free,no,n/a,easy,ai-dir,
+38,Toolify.ai,https://www.toolify.ai/submit,403,paid (free w/ backlink sometimes),yes,yes,medium,ai-dir,403 = blocks bots; loads in browser
+39,AIcyclopedia,https://www.aicyclopedia.com,200,free,no,n/a,easy,ai-dir,submit form linked from homepage
+40,Easy With AI,https://easywithai.com/submit-tool/,200,free/paid,no,n/a,easy,ai-dir,
+41,OpenTools,https://opentools.ai,200,free,no,n/a,easy,ai-dir,submit form linked from homepage
+43,SaaSworthy,https://www.saasworthy.com,200,free,yes,yes,medium,saas,submit form linked from homepage
+44,G2,https://sell.g2.com/create-a-profile,200,free profile,yes,business email pref,hard,saas,
+45,Capterra,https://www.capterra.com/vendors/sign-up,403,free listing,yes,yes,hard,saas,403 = blocks bots; loads in browser
+46,Crunchbase,https://www.crunchbase.com/add-new,403,free,yes,yes,medium,saas,403 = blocks bots; loads in browser
+47,Lovable Discord/Community showcase,https://discord.com/invite/lovable-dev,200,free,yes,yes,medium,community,
+48,X build-in-public post,https://x.com,200,free,yes,yes,easy,community,
+49,Stack Overflow-style answers (dev communities),https://www.reddit.com/r/vibecoding/,403,free,yes,yes,medium,community,403 = blocks bots; loads in browser
+50,BacklinkLog/Launch directories list (Awesome lists GitHub),https://github.com/mmccaff/PlacesToPostYourStartup,200,free,yes (GitHub PR),GitHub,medium,launch,
+50,"GitHub PR: filipecalegario/awesome-vibe-coding",https://github.com/filipecalegario/awesome-vibe-coding/pull/382,200,"free","GitHub","GitHub",done-PR open,awesome-list,"PR opened 2026-10-15"
+51,"GitHub PR: acvnace/awesome-vibe-coding-resources",https://github.com/acvnace/awesome-vibe-coding-resources/pull/160,200,"free","GitHub","GitHub",done-PR open,awesome-list,"PR opened 2026-10-15"
+52,"GitHub PR: jamesmurdza/awesome-ai-devtools",https://github.com/jamesmurdza/awesome-ai-devtools/pull/1241,200,"free","GitHub","GitHub",done-PR open,awesome-list,"PR opened 2026-10-15"
+53,"GitHub: awesome-vibe-coding/awesome-vibe-coding",https://github.com/awesome-vibe-coding/awesome-vibe-coding,200,"free","GitHub","GitHub",easy,awesome-list,"No good-fit section yet; PR later if a debugging section appears"
+54,"GitHub: eudk/awesome-ai-tools",https://github.com/eudk/awesome-ai-tools,200,"free","GitHub","GitHub",medium,awesome-list,"Strict: says promotional submissions may be declined"
+55,"GitHub: mahseema/awesome-ai-tools (Code section)",https://github.com/mahseema/awesome-ai-tools,200,"free","GitHub","GitHub",medium,awesome-list,"Big backlog of PRs"
+56,"GitHub: mmccaff/PlacesToPostYourStartup",https://github.com/mmccaff/PlacesToPostYourStartup,200,"free","GitHub","GitHub",n/a,resource,"Source of more venues"
+57,"DEV.to article (tutorial: fixing Lovable/Supabase errors)",https://dev.to/new,200,"free","yes","yes",easy,content,"Content post, not an ad"
+58,"Hashnode article",https://hashnode.com/onboard,200,"free","yes","yes",easy,content,"Cross-post the DEV article"
+59,"Medium article",https://medium.com/new-story,403,"free","yes","yes",easy,content,"Cross-post"
+60,"Indie Hackers post (Show IH)",https://www.indiehackers.com/new-post,200,"free","yes","yes",easy,community,""
+61,"Reddit r/vibecoding",https://www.reddit.com/r/vibecoding/,403,"free","yes","yes",medium,community,"Brian's account; follow sub rules"
+62,"Reddit r/lovable",https://www.reddit.com/r/lovable/,403,"free","yes","yes",medium,community,"Help-first replies"
+63,"Reddit r/boltnewbuilders",https://www.reddit.com/r/boltnewbuilders/,403,"free","yes","yes",medium,community,"Help-first replies"
+64,"Reddit r/Supabase",https://www.reddit.com/r/Supabase/,403,"free","yes","yes",medium,community,"Self-promo limits"
+65,"Reddit r/cursor",https://www.reddit.com/r/cursor/,403,"free","yes","yes",medium,community,""
+66,"Reddit r/SaaS",https://www.reddit.com/r/SaaS/,403,"free","yes","yes",medium,community,""
+67,"Reddit r/indiehackers",https://www.reddit.com/r/indiehackers/,403,"free","yes","yes",easy,community,""
+68,"Lovable Discord #showcase",https://discord.com/invite/lovable-dev,200,"free","yes","yes",easy,community,""
+69,"Bolt.new Discord / community",https://bolt.new,200,"free","yes","yes",easy,community,"Find invite link on the site"
+70,"Supabase Discord #showcase",https://discord.supabase.com,200,"free","yes","yes",easy,community,""
+71,"X Community: Build in Public",https://x.com/i/communities,200,"free","yes","yes",easy,community,""
+72,"Hacker News Show HN",https://news.ycombinator.com/submit,200,"free","yes","yes (username only)",medium,community,"No custom domain needed"
+73,"Product Hunt",https://www.producthunt.com/posts/new,200,"free","yes","yes",medium,launch,"Free subdomain is OK"
+74,"Lobsters",https://lobste.rs,200,"free","invite only","no",hard,community,"Needs invite"
+75,"Quora answers (Lovable/Bolt errors)",https://www.quora.com,403,"free","yes","yes",easy,content,""
+76,"Stack Overflow profile website link",https://stackoverflow.com/users/signup,403,"free","yes","yes",medium,community,"No promo in answers; profile link only"

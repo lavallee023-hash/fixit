@@ -9,6 +9,17 @@ import credits
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 DATA = os.environ.get("FIXIT_DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
+
+
+@app.context_processor
+def _site_verification():
+    """Read site-verification tokens fresh on each request (no reload needed)."""
+    try:
+        with open(os.path.join(DATA, "impact-verify.txt")) as f:
+            tok = f.read().strip()
+    except OSError:
+        tok = ""
+    return {"impact_verify": tok}
 os.makedirs(DATA, exist_ok=True)
 USAGE, QUEUE = os.path.join(DATA, "usage.json"), os.path.join(DATA, "escalations.jsonl")
 FREE_PER_MONTH = int(os.environ.get("FIXIT_FREE_PER_MONTH", "3"))
