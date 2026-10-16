@@ -24,8 +24,8 @@ def _site_verification():
 os.makedirs(DATA, exist_ok=True)
 USAGE, QUEUE = os.path.join(DATA, "usage.json"), os.path.join(DATA, "escalations.jsonl")
 FREE_PER_MONTH = int(os.environ.get("FIXIT_FREE_PER_MONTH", "3"))
-PLANS = [("1 fix", "$9", os.environ.get("PAY_LINK_SINGLE", "")), ("5 fixes", "$29", os.environ.get("PAY_LINK_5PACK", "")),
-         ("Unlimited / month", "$19/mo", os.environ.get("PAY_LINK_MONTHLY", ""))]
+PLANS = [("1 fix", "$9", os.environ.get("PAY_LINK_SINGLE", "https://buy.stripe.com/8x24gz4RD0LOeB6b59g3600")), ("5 fixes", "$29", os.environ.get("PAY_LINK_5PACK", "https://buy.stripe.com/5kQeVdesd0LOboUflpg3601")),
+         ("Unlimited / month", "$19/mo", os.environ.get("PAY_LINK_MONTHLY", "https://buy.stripe.com/3cIeVddo9cuwfFa6OTg3602"))]
 _lock = threading.Lock()
 INDEXNOW_KEY = "7f3c9a1e5b2d4f6a8c0e1b3d5f7a9c2e"
 
