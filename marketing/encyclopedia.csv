@@ -1,0 +1,55 @@
+slug,error,platform,batch,date
+eaddrinuse-address-already-in-use,Error: listen EADDRINUSE: address already in use :::3000,"Node.js (Cursor, local dev)",1,2026-10-15
+failed-to-fetch-dynamically-imported-module,TypeError: Failed to fetch dynamically imported module,"Vite (Lovable, Bolt, v0)",1,2026-10-15
+mixed-content-blocked,"Mixed Content: The page was loaded over HTTPS, but requested an insecure resource","Browser (Vercel, Netlify, Lovable)",1,2026-10-15
+netlify-deploy-directory-does-not-exist,Deploy directory 'dist' does not exist,Netlify,1,2026-10-15
+netlify-page-not-found-on-refresh,"Netlify ""Page not found"" when refreshing or opening a direct link",Netlify,1,2026-10-15
+nextjs-dynamic-server-usage,Error: Dynamic server usage: Route couldn't be rendered statically because it used cookies,"Next.js (v0, Vercel)",1,2026-10-15
+npm-eresolve-unable-to-resolve-dependency-tree,npm ERR! ERESOLVE unable to resolve dependency tree,"npm (Bolt, Cursor, Vercel, Netlify)",1,2026-10-15
+postgrest-pgrst116-multiple-or-no-rows,"JSON object requested, multiple (or no) rows returned",Supabase,1,2026-10-15
+process-is-not-defined-vite,ReferenceError: process is not defined,"Vite (Lovable, Bolt)",1,2026-10-15
+replit-deployment-failed-health-checks,Replit deployment failed: your app is not responding on the expected port (health check failed),Replit,1,2026-10-15
+stripe-invalid-api-key-provided,Invalid API Key provided: sk_test_****,Stripe,1,2026-10-15
+stripe-no-signatures-found-matching-payload,No signatures found matching the expected signature for payload,Stripe,1,2026-10-15
+stripe-no-such-price,StripeInvalidRequestError: No such price: 'price_...',Stripe,1,2026-10-15
+supabase-auth-redirects-to-localhost,Supabase magic link / confirm email redirects to localhost:3000,Supabase,1,2026-10-15
+supabase-could-not-find-column-in-schema-cache,Could not find the 'column' column of 'table' in the schema cache,Supabase,1,2026-10-15
+supabase-edge-function-non-2xx-status,FunctionsHttpError: Edge Function returned a non-2xx status code,Supabase,1,2026-10-15
+supabase-email-not-confirmed,AuthApiError: Email not confirmed,Supabase,1,2026-10-15
+supabase-email-rate-limit-exceeded,AuthApiError: email rate limit exceeded,Supabase,1,2026-10-15
+supabase-infinite-recursion-in-policy,infinite recursion detected in policy for relation,Supabase,1,2026-10-15
+supabase-invalid-refresh-token-not-found,AuthApiError: Invalid Refresh Token: Refresh Token Not Found,Supabase,1,2026-10-15
+supabase-jwt-expired,JWT expired,Supabase,1,2026-10-15
+supabase-permission-denied-for-table,permission denied for table,Supabase,1,2026-10-15
+supabase-relation-does-not-exist,"relation ""public.table"" does not exist",Supabase,1,2026-10-15
+supabase-storage-bucket-not-found,StorageApiError: Bucket not found,Supabase,1,2026-10-15
+vercel-404-not-found-on-refresh,404: NOT_FOUND on Vercel after refreshing a page (Vite / React SPA),Vercel,1,2026-10-15
+vercel-function-invocation-timeout,504: GATEWAY_TIMEOUT FUNCTION_INVOCATION_TIMEOUT,Vercel,1,2026-10-15
+supabase-auth-session-missing,AuthSessionMissingError: Auth session missing!,Supabase,candidate,
+supabase-invalid-login-credentials,AuthApiError: Invalid login credentials,Supabase,candidate,
+supabase-user-already-registered,User already registered,Supabase,candidate,
+supabase-oauth-provider-not-enabled,Unsupported provider: provider is not enabled,Supabase,candidate,
+supabase-duplicate-key-unique-constraint,duplicate key value violates unique constraint,Supabase,candidate,
+supabase-violates-foreign-key-constraint,insert or update on table violates foreign key constraint,Supabase,candidate,
+supabase-null-value-violates-not-null,null value in column violates not-null constraint,Supabase,candidate,
+supabase-invalid-input-syntax-uuid,invalid input syntax for type uuid,Supabase,candidate,
+supabase-pgrst200-relationship-not-found,Could not find a relationship between tables in the schema cache,Supabase,candidate,
+supabase-realtime-not-receiving,Supabase realtime subscription not receiving changes,Supabase,candidate,
+supabase-storage-payload-too-large,The object exceeded the maximum allowed size,Supabase,candidate,
+supabase-too-many-connections,remaining connection slots are reserved / too many clients,Supabase,candidate,
+vercel-edge-function-size-limit,Edge Function exceeds the size limit,Vercel,candidate,
+vercel-env-not-available-at-build,NEXT_PUBLIC_ var undefined after Vercel deploy (build-time inlining),Vercel,candidate,
+netlify-function-not-found-404,Netlify Function 404 /.netlify/functions,Netlify,candidate,
+nextjs-window-is-not-defined,ReferenceError: window is not defined,Next.js,candidate,
+nextjs-useclient-hooks-server-component,You're importing a component that needs useState. It only works in a Client Component,Next.js,candidate,
+nextjs-image-unconfigured-host,"Invalid src prop on next/image, hostname is not configured",Next.js,candidate,
+stripe-checkout-session-url-missing,Stripe checkout redirectToCheckout is not a function (removed API),Stripe,candidate,
+stripe-webhook-not-received,Stripe webhook events not arriving / 400 or 500 on endpoint,Stripe,candidate,
+stripe-subscription-status-not-updating,Stripe subscription status not syncing to Supabase,Stripe,candidate,
+openai-429-insufficient-quota,429 You exceeded your current quota,OpenAI,candidate,
+vite-failed-to-resolve-import,[plugin:vite:import-analysis] Failed to resolve import,Vite,candidate,
+tailwind-classes-not-applying,Tailwind classes not working after build (content paths),Tailwind,candidate,
+replit-secrets-not-in-deployment,Replit secrets undefined in deployment,Replit,candidate,
+github-push-rejected-secret-detected,GH013: Repository rule violations / push protection secret detected,GitHub,candidate,
+resend-domain-not-verified,Resend: The domain is not verified,Resend,candidate,
+clerk-publishable-key-missing,Missing publishableKey (Clerk),Clerk,candidate,

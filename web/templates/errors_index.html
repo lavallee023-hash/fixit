@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Error Encyclopedia: fixes for Lovable, Bolt, Cursor, Supabase, Vercel & Stripe errors | FixIt{% endblock %}
+{% block desc %}Plain-English explanations and step-by-step fixes for {{ errors|length }} common errors in AI-built apps: Supabase auth and database errors, Vercel and Netlify deploys, Replit, Stripe and Vite.{% endblock %}
+{% block body %}
+<h1>Error Encyclopedia</h1>
+<p class="sub">Common errors in apps built with Lovable, Bolt, Cursor, v0 and Replit, what they mean, and exactly how to fix them. Each page includes a prompt you can paste into your AI builder.</p>
+{% for platform, items in groups %}<h2>{{ platform }}</h2><ul>{% for e in items %}<li><a href="/errors/{{ e.slug }}">{{ e.error }}</a></li>{% endfor %}</ul>{% endfor %}
+<div class="card"><b>Don't see your error?</b> Paste it into FixIt and get the root cause and fix in minutes. <a class="btn" href="/">Try FixIt free</a></div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{
+ "slug": "supabase-edge-function-non-2xx-status",
+ "error": "FunctionsHttpError: Edge Function returned a non-2xx status code",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Your Supabase Edge Function ran (or tried to) and answered with an error status like 400, 401 or 500. This message is a wrapper: the real reason is in the response body and the function logs.",
+ "causes": [
+  "The function threw an exception: missing secret, bad JSON body, third-party API failure.",
+  "401 because the request had no valid user JWT and verify_jwt is on.",
+  "The function returns a 4xx on purpose for bad input.",
+  "A secret like OPENAI_API_KEY or STRIPE_SECRET_KEY was set locally but not in the project."
+ ],
+ "steps": [
+  {
+   "text": "Read the real error. In the client, get the body from error.context.",
+   "code": "const { data, error } = await supabase.functions.invoke('my-fn', { body: { id } })\nif (error) {\n  const details = await error.context?.json?.().catch(() => null)\n  console.error(error.message, details)\n}"
+  },
+  {
+   "text": "Check Supabase dashboard > Edge Functions > your function > Logs for the stack trace."
+  },
+  {
+   "text": "Set missing secrets, then redeploy.",
+   "code": "supabase secrets set OPENAI_API_KEY=sk-... STRIPE_SECRET_KEY=sk_live_...\nsupabase functions deploy my-fn"
+  },
+  {
+   "text": "Wrap the handler so errors come back as readable JSON (include CORS headers if called from the browser).",
+   "code": "Deno.serve(async (req) => {\n  try {\n    const body = await req.json()\n    // ...work...\n    return Response.json({ ok: true })\n  } catch (e) {\n    console.error(e)\n    return Response.json({ error: String(e) }, { status: 500 })\n  }\n})"
+  },
+  {
+   "text": "If logs show 401 Invalid JWT, call it via supabase.functions.invoke while logged in, or deploy with --no-verify-jwt for public webhooks and check auth yourself."
+  }
+ ],
+ "prompt": "My Supabase Edge Function call fails with 'Edge Function returned a non-2xx status code'. Update the client to log the response body from error.context, wrap the function in try/catch returning JSON errors with status codes and CORS headers, validate the request body, and list every Deno.env.get() secret the function needs so I can set them with supabase secrets set.",
+ "faq": [
+  {
+   "q": "Where are Edge Function logs?",
+   "a": "Dashboard > Edge Functions > select the function > Logs (and Invocations)."
+  },
+  {
+   "q": "Lovable shows this but the function looks fine?",
+   "a": "Check the secrets in the Supabase project; Lovable's code may expect keys you have not added."
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+{
+ "slug": "netlify-page-not-found-on-refresh",
+ "error": "Netlify \"Page not found\" when refreshing or opening a direct link",
+ "platform": "Netlify",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Your React/Vite single-page app works when you click around, but reloading /dashboard or opening a shared link shows Netlify's 'Page not found'. Netlify looks for a real file at that path, and only index.html exists.",
+ "causes": [
+  "No SPA fallback rule, so Netlify does not know to serve index.html for app routes.",
+  "_redirects was put in the project root instead of the folder that gets published (public/ for Vite).",
+  "netlify.toml points publish at the wrong folder."
+ ],
+ "steps": [
+  {
+   "text": "Create public/_redirects (Vite copies public/ into dist/) with one line.",
+   "code": "/*    /index.html   200"
+  },
+  {
+   "text": "Or add the rule to netlify.toml.",
+   "code": "[build]\n  command = \"npm run build\"\n  publish = \"dist\"\n\n[[redirects]]\n  from = \"/*\"\n  to = \"/index.html\"\n  status = 200"
+  },
+  {
+   "text": "Redeploy and check the deploy summary says '1 redirect rule processed'."
+  },
+  {
+   "text": "Next.js on Netlify does not need this; use the Next.js runtime instead."
+  }
+ ],
+ "prompt": "My Vite React app on Netlify shows 'Page not found' when I refresh any route except /. Add a public/_redirects file containing '/*    /index.html   200' and a netlify.toml with build command npm run build, publish dist, and the same SPA redirect. Don't change the router.",
+ "faq": [
+  {
+   "q": "Why does it work locally?",
+   "a": "The Vite dev server already falls back to index.html; Netlify's static hosting does not."
+  },
+  {
+   "q": "Will this break my API or images?",
+   "a": "No. Netlify serves real files first; the rule only applies when no file matches."
+  }
+ ]
+}

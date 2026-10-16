@@ -1,0 +1,41 @@
+{
+ "slug": "supabase-infinite-recursion-in-policy",
+ "error": "infinite recursion detected in policy for relation",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "An RLS policy on a table queries the same table (directly or through another table whose policy points back), so Postgres would loop forever checking it, and it stops with error 42P17.",
+ "causes": [
+  "A policy like 'users can see rows if they are in the team' does select from team_members inside the policy on team_members.",
+  "Two tables have policies that each query the other (e.g. projects \u2194 members).",
+  "An admin check reads the profiles table from inside a profiles policy."
+ ],
+ "steps": [
+  {
+   "text": "Move the lookup into a SECURITY DEFINER function. It runs with the owner's rights and skips RLS, which breaks the loop.",
+   "code": "create or replace function public.is_team_member(t uuid) returns boolean\nlanguage sql security definer stable set search_path = '' as $$\n  select exists (select 1 from public.team_members\n                 where team_id = t and user_id = auth.uid());\n$$;"
+  },
+  {
+   "text": "Rewrite the policy to call the function instead of querying the table.",
+   "code": "drop policy if exists \"members can read\" on public.team_members;\ncreate policy \"members can read\" on public.team_members for select\n  to authenticated using ( public.is_team_member(team_id) );"
+  },
+  {
+   "text": "Restrict who can execute the function if needed, and keep it in a schema not exposed to the API if it returns sensitive data.",
+   "code": "revoke execute on function public.is_team_member(uuid) from anon;"
+  },
+  {
+   "text": "For simple 'own rows' cases, avoid subqueries entirely: using ( user_id = auth.uid() )."
+  }
+ ],
+ "prompt": "Supabase says 'infinite recursion detected in policy for relation <TABLE>'. Rewrite the RLS policies so no policy queries its own table: create a SECURITY DEFINER SQL function with set search_path = '' that does the membership/admin check, then make the policies call that function. Give me the complete migration including drop policy statements.",
+ "faq": [
+  {
+   "q": "Is SECURITY DEFINER safe?",
+   "a": "Yes, if the function only returns a boolean for auth.uid() and sets search_path. Do not let it accept arbitrary SQL."
+  },
+  {
+   "q": "Why did this break when the AI added an admin role?",
+   "a": "Admin checks often read profiles from inside a profiles policy, which recurses."
+  }
+ ]
+}

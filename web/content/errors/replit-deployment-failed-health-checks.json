@@ -1,0 +1,45 @@
+{
+ "slug": "replit-deployment-failed-health-checks",
+ "error": "Replit deployment failed: your app is not responding on the expected port (health check failed)",
+ "platform": "Replit",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Replit started your app but could not reach it over HTTP in time, so the deployment was marked failed. Usually the server is listening on the wrong address or port, or it takes too long to start.",
+ "causes": [
+  "The server listens on localhost/127.0.0.1 instead of 0.0.0.0.",
+  "A hard-coded port that does not match the port mapped in .replit.",
+  "The run command starts a dev server or build step that takes too long, or exits immediately.",
+  "The home route / is slow or errors, so the health check fails."
+ ],
+ "steps": [
+  {
+   "text": "Listen on 0.0.0.0 and the PORT env var.",
+   "code": "// Node / Express\nconst port = process.env.PORT || 3000\napp.listen(port, '0.0.0.0', () => console.log('listening on', port))"
+  },
+  {
+   "text": "Python / Flask equivalent.",
+   "code": "app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))"
+  },
+  {
+   "text": "In .replit, map the internal port to external 80.",
+   "code": "[[ports]]\nlocalPort = 3000\nexternalPort = 80"
+  },
+  {
+   "text": "Use a production run command (e.g. npm run build in the build step and npm start to run), not npm run dev."
+  },
+  {
+   "text": "Make sure GET / returns quickly (200) without waiting on a database or API call. Check the Deployments > Logs tab for crashes."
+  }
+ ],
+ "prompt": "My Replit deployment fails its health check. Make the server listen on 0.0.0.0 and process.env.PORT, make sure the .replit [[ports]] mapping matches, use separate build and run commands for production (no dev server), and make GET / respond quickly with 200.",
+ "faq": [
+  {
+   "q": "Works in the workspace but not deployed?",
+   "a": "The deployment uses its own run command and secrets; check Deployment settings and add secrets there."
+  },
+  {
+   "q": "Vite app?",
+   "a": "Deploy as Static with the dist folder, or serve it with vite preview --host 0.0.0.0 --port $PORT."
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ e.error }} - how to fix it ({{ e.platform }}) | FixIt{% endblock %}
+{% block desc %}{{ e.meaning[:155] }}{% endblock %}
+{% block head %}<script type="application/ld+json">{{ ld }}</script>{% endblock %}
+{% block body %}
+<p class="small"><a href="/errors/">Error Encyclopedia</a> › {{ e.platform }}</p>
+<h1>{{ e.error }}</h1>
+<h2>What it means</h2><p>{{ inline(e.meaning) }}</p>
+<h2>Common causes</h2><ul>{% for c in e.causes %}<li>{{ inline(c) }}</li>{% endfor %}</ul>
+<h2>How to fix it</h2><ol>{% for s in e.steps %}<li>{{ inline(s.text) }}{% if s.code %}<pre><code>{{ s.code }}</code></pre>{% endif %}</li>{% endfor %}</ol>
+<h2>Prompt to paste into your AI builder</h2><pre>{{ e.prompt }}</pre>
+<div class="card"><b>Still stuck?</b> Paste your exact error or screenshot into FixIt. You'll get the root cause for your app, fix steps and a ready-to-paste prompt. 3 free fixes a month. <a class="btn" href="/">Try FixIt free</a></div>
+<h2>FAQ</h2>{% for q in e.faq %}<div class="card"><h3 style="margin-top:0">{{ q.q }}</h3><p>{{ inline(q.a) }}</p></div>{% endfor %}
+{% if related %}<h2>Related errors</h2><ul>{% for r in related %}<li><a href="/errors/{{ r.slug }}">{{ r.error }}</a></li>{% endfor %}</ul>{% endif %}
+{% endblock %}

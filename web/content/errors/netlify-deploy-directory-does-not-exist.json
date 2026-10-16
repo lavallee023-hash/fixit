@@ -1,0 +1,40 @@
+{
+ "slug": "netlify-deploy-directory-does-not-exist",
+ "error": "Deploy directory 'dist' does not exist",
+ "platform": "Netlify",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "The build finished (or was skipped) but Netlify can't find the folder it's supposed to publish. Your publish directory setting and the folder your build actually creates don't match.",
+ "causes": [
+  "Vite outputs dist, but Netlify is set to build (CRA) or out (Next export), or the other way around.",
+  "The project is in a subfolder (e.g. frontend/) and Base directory is not set.",
+  "The build command is empty, so nothing gets built.",
+  "The build failed earlier and the real error is higher up in the log."
+ ],
+ "steps": [
+  {
+   "text": "Scroll up in the deploy log and make sure the build itself succeeded."
+  },
+  {
+   "text": "Run npm run build locally and see which folder appears (dist for Vite, build for Create React App)."
+  },
+  {
+   "text": "Set Site configuration > Build & deploy: Base directory (if in a subfolder), Build command npm run build, Publish directory dist. Or in netlify.toml:",
+   "code": "[build]\n  base = \"frontend\"   # only if the app lives in a subfolder\n  command = \"npm run build\"\n  publish = \"dist\"     # relative to base"
+  },
+  {
+   "text": "Trigger a new deploy with 'Clear cache and deploy site'."
+  }
+ ],
+ "prompt": "Netlify fails with \"Deploy directory 'dist' does not exist\". Check which folder our build script outputs, where package.json lives, and write a netlify.toml with the correct base, command and publish values.",
+ "faq": [
+  {
+   "q": "Can I just commit the dist folder?",
+   "a": "You can drag-and-drop deploy it, but letting Netlify build is easier to keep updated."
+  },
+  {
+   "q": "Next.js?",
+   "a": "Don't set publish to out unless you use static export; Netlify's Next.js runtime handles it."
+  }
+ ]
+}

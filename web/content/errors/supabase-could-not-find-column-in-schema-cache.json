@@ -1,0 +1,46 @@
+{
+ "slug": "supabase-could-not-find-column-in-schema-cache",
+ "error": "Could not find the 'column' column of 'table' in the schema cache",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "The Supabase REST API (PostgREST, code PGRST204) does not know about a column your insert or update sends. Either the column does not exist, or the API has not reloaded since you added it.",
+ "causes": [
+  "The app sends a field (e.g. user_id, createdAt) that is not a real column.",
+  "camelCase in code vs snake_case in the database (createdAt vs created_at).",
+  "You just added the column and the schema cache is stale.",
+  "The insert spreads a whole form object with extra keys."
+ ],
+ "steps": [
+  {
+   "text": "Check the real columns.",
+   "code": "select column_name, data_type from information_schema.columns\nwhere table_schema = 'public' and table_name = 'todos';"
+  },
+  {
+   "text": "If the column should exist, add it.",
+   "code": "alter table public.todos add column user_id uuid references auth.users(id) default auth.uid();"
+  },
+  {
+   "text": "Reload the API schema cache.",
+   "code": "notify pgrst, 'reload schema';"
+  },
+  {
+   "text": "Send only known columns instead of spreading the whole form.",
+   "code": "const { title, done } = form\nawait supabase.from('todos').insert({ title, done })"
+  },
+  {
+   "text": "Regenerate types so TypeScript catches this next time: supabase gen types typescript --project-id <id> > src/types/supabase.ts"
+  }
+ ],
+ "prompt": "Supabase insert fails with \"Could not find the '<COLUMN>' column of '<TABLE>' in the schema cache\". Compare every insert/update payload for <TABLE> with the real columns, map camelCase fields to snake_case, stop spreading whole form objects, and write a migration that adds any columns that are genuinely missing followed by NOTIFY pgrst, 'reload schema';.",
+ "faq": [
+  {
+   "q": "I added the column and still get it?",
+   "a": "Run NOTIFY pgrst, 'reload schema'; or wait a minute; the cache reloads after DDL usually but not always."
+  },
+  {
+   "q": "Does Supabase convert camelCase?",
+   "a": "No. Column names must match exactly."
+  }
+ ]
+}

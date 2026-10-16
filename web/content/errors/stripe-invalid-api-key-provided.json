@@ -1,0 +1,40 @@
+{
+ "slug": "stripe-invalid-api-key-provided",
+ "error": "Invalid API Key provided: sk_test_****",
+ "platform": "Stripe",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Stripe rejected the secret key your server sent. It may be wrong, revoked, cut off, from another account, or you sent the publishable key where a secret key belongs.",
+ "causes": [
+  "Env var empty or not set in the hosting environment (so the code sends 'undefined').",
+  "The publishable key (pk_) used on the server instead of the secret key (sk_ or rk_).",
+  "Key was rolled/revoked in the Dashboard.",
+  "Extra quotes or spaces pasted into the env var."
+ ],
+ "steps": [
+  {
+   "text": "Never put the secret key in frontend code. On the server, read it from env and fail loudly if missing.",
+   "code": "if (!process.env.STRIPE_SECRET_KEY?.startsWith('sk_') && !process.env.STRIPE_SECRET_KEY?.startsWith('rk_'))\n  throw new Error('STRIPE_SECRET_KEY missing or wrong type')\nconst stripe = new Stripe(process.env.STRIPE_SECRET_KEY)"
+  },
+  {
+   "text": "In Stripe Dashboard > Developers > API keys, reveal or create a key in the right mode and paste it without quotes."
+  },
+  {
+   "text": "Set it in the place your code runs: Vercel/Netlify env settings, Supabase secrets (supabase secrets set STRIPE_SECRET_KEY=...), or Replit Secrets. Redeploy after changing env vars."
+  },
+  {
+   "text": "If a secret key was ever committed or pasted into a chat, roll it in the Dashboard."
+  }
+ ],
+ "prompt": "Stripe returns 'Invalid API Key provided'. Make sure the Stripe secret key is only used server-side from process.env.STRIPE_SECRET_KEY (or Deno.env in Edge Functions), add a startup check that it starts with sk_ or rk_, remove any secret key from frontend code, and use only the publishable key (pk_) in the browser.",
+ "faq": [
+  {
+   "q": "Which key goes in the frontend?",
+   "a": "Only the publishable key pk_test_/pk_live_."
+  },
+  {
+   "q": "I changed the env var but nothing changed?",
+   "a": "Most hosts need a redeploy to pick up new env vars."
+  }
+ ]
+}

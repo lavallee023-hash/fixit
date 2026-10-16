@@ -1,0 +1,39 @@
+{
+ "slug": "nextjs-dynamic-server-usage",
+ "error": "Error: Dynamic server usage: Route couldn't be rendered statically because it used cookies",
+ "platform": "Next.js (v0, Vercel)",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "During next build, Next.js tried to pre-render a page as static HTML, but the code reads per-request data (cookies(), headers(), searchParams), which only exist at request time.",
+ "causes": [
+  "A Supabase server client reading cookies inside a page or layout that Next.js assumed was static.",
+  "export const dynamic = 'error' or generateStaticParams forcing static rendering.",
+  "A try/catch around cookies() that swallowed Next's internal bail-out signal."
+ ],
+ "steps": [
+  {
+   "text": "If the page needs the logged-in user, mark it dynamic.",
+   "code": "// app/dashboard/page.tsx\nexport const dynamic = 'force-dynamic'"
+  },
+  {
+   "text": "Don't wrap cookies()/headers() in try/catch that hides the error; let Next handle it."
+  },
+  {
+   "text": "Keep auth-dependent reads out of the root layout if other pages should stay static. Move them into the page or a component under a dynamic route."
+  },
+  {
+   "text": "For public pages, fetch data without cookies (a plain client using the anon key) so they can stay static."
+  }
+ ],
+ "prompt": "next build fails with 'Dynamic server usage: Route <ROUTE> couldn't be rendered statically because it used cookies'. Mark the routes that need the user session with export const dynamic = 'force-dynamic', remove any try/catch around cookies()/headers(), and move session reads out of the root layout so public pages can stay static.",
+ "faq": [
+  {
+   "q": "Is force-dynamic slower?",
+   "a": "The page renders per request instead of once at build, which is normal for logged-in pages."
+  },
+  {
+   "q": "Warning or failure?",
+   "a": "Often it's logged during build; it fails only when static rendering is enforced or the error is caught incorrectly."
+  }
+ ]
+}

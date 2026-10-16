@@ -1,0 +1,42 @@
+{
+ "slug": "eaddrinuse-address-already-in-use",
+ "error": "Error: listen EADDRINUSE: address already in use :::3000",
+ "platform": "Node.js (Cursor, local dev)",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Your server tried to start on port 3000 but something is already using it, often an old copy of the same dev server that never shut down.",
+ "causes": [
+  "A previous npm run dev is still running in another terminal or a background Cursor/VS Code terminal.",
+  "The process crashed but a nodemon/child process kept the port.",
+  "Another app (another project, Docker container) uses the same port."
+ ],
+ "steps": [
+  {
+   "text": "Find and stop what is using the port (macOS/Linux).",
+   "code": "lsof -i :3000\nkill -9 <PID>\n# or in one go:\nnpx kill-port 3000"
+  },
+  {
+   "text": "Windows (PowerShell).",
+   "code": "netstat -ano | findstr :3000\ntaskkill /PID <PID> /F"
+  },
+  {
+   "text": "Or just use another port.",
+   "code": "PORT=3001 npm run dev\n# Vite: npx vite --port 5174"
+  },
+  {
+   "text": "Make your server read PORT from env so you can change it without code edits.",
+   "code": "const port = Number(process.env.PORT) || 3000"
+  }
+ ],
+ "prompt": "My dev server fails with EADDRINUSE: address already in use :::3000. Make the server read its port from process.env.PORT with 3000 as fallback, and tell me the command to find and kill the process on port 3000 for my OS.",
+ "faq": [
+  {
+   "q": "Did my code break?",
+   "a": "No. It's a leftover process, not a bug in your app."
+  },
+  {
+   "q": "Why does Cursor keep doing this?",
+   "a": "The agent may start a new dev server in a new terminal without stopping the old one. Close old terminals."
+  }
+ ]
+}

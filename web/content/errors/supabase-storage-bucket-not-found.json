@@ -1,0 +1,45 @@
+{
+ "slug": "supabase-storage-bucket-not-found",
+ "error": "StorageApiError: Bucket not found",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Supabase Storage cannot find a bucket with the name in your code, or the current user is not allowed to see it.",
+ "causes": [
+  "The bucket was never created in this project (the AI wrote upload code but did not create the bucket).",
+  "Bucket name typo or case difference (Avatars vs avatars).",
+  "The app is pointed at a different Supabase project.",
+  "A public URL is used for a private bucket, or RLS on storage.objects blocks the request."
+ ],
+ "steps": [
+  {
+   "text": "Storage > New bucket: create it with the exact name the code uses. Tick Public only if files should be readable by anyone with the link."
+  },
+  {
+   "text": "Or create it with SQL.",
+   "code": "insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true);"
+  },
+  {
+   "text": "Add policies so logged-in users can upload into their own folder.",
+   "code": "create policy \"users upload own\" on storage.objects for insert to authenticated\n  with check ( bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text );\ncreate policy \"public read\" on storage.objects for select\n  using ( bucket_id = 'avatars' );"
+  },
+  {
+   "text": "Upload to a path that starts with the user id.",
+   "code": "await supabase.storage.from('avatars').upload(`${user.id}/avatar.png`, file, { upsert: true })"
+  },
+  {
+   "text": "For private buckets, show files with createSignedUrl() instead of getPublicUrl()."
+  }
+ ],
+ "prompt": "Uploads fail with 'Bucket not found'. Give me SQL that creates the '<BUCKET>' bucket (public: <true/false>) and storage.objects RLS policies letting authenticated users insert, update and read files only under a folder named with their auth.uid(). Update the upload code to use the path `${user.id}/filename` and use createSignedUrl if the bucket is private.",
+ "faq": [
+  {
+   "q": "Why 'not found' when it exists?",
+   "a": "Usually RLS on storage.objects or a private bucket accessed via a public URL; Storage hides buckets you may not access."
+  },
+  {
+   "q": "Can the client create buckets?",
+   "a": "Not with the anon key by default. Create buckets in the dashboard or a migration."
+  }
+ ]
+}

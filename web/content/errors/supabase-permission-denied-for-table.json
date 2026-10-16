@@ -1,0 +1,45 @@
+{
+ "slug": "supabase-permission-denied-for-table",
+ "error": "permission denied for table",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Postgres (error code 42501) refused access before row-level security was even checked. The database role making the request, usually anon or authenticated, has no GRANT on that table. This is different from an RLS policy error.",
+ "causes": [
+  "The table was created with raw SQL or a migration tool (Prisma, Drizzle) that did not grant privileges to the anon and authenticated roles.",
+  "Someone ran REVOKE ALL, or the table lives in a custom schema that was never exposed.",
+  "A view or function touches another table the caller has no rights on."
+ ],
+ "steps": [
+  {
+   "text": "In the Supabase SQL Editor, grant the API roles access to the table (replace todos with your table). RLS still controls which rows they see.",
+   "code": "grant select, insert, update, delete on table public.todos to authenticated;\ngrant select on table public.todos to anon; -- only if logged-out users should read"
+  },
+  {
+   "text": "If the table has an identity/serial id, grant the sequence too.",
+   "code": "grant usage, select on all sequences in schema public to authenticated;"
+  },
+  {
+   "text": "Make sure RLS is on and you have policies, since you just opened the door at the GRANT level.",
+   "code": "alter table public.todos enable row level security;"
+  },
+  {
+   "text": "For a custom schema, also grant usage on the schema and add it under Settings > API > Exposed schemas.",
+   "code": "grant usage on schema myschema to anon, authenticated;"
+  },
+  {
+   "text": "Re-run the request. If you now get 'new row violates row-level security policy' instead, the GRANT is fixed and you need a policy."
+  }
+ ],
+ "prompt": "Supabase returns 'permission denied for table <TABLE>' (42501). Write a SQL migration that grants select, insert, update, delete on public.<TABLE> to the authenticated role (and select to anon only if public reads are intended), grants usage on the table's sequences, and confirms row level security is enabled with policies limiting rows to auth.uid(). Do not disable RLS.",
+ "faq": [
+  {
+   "q": "Is this the same as an RLS error?",
+   "a": "No. 'permission denied' is a missing GRANT. RLS errors say 'violates row-level security policy' or simply return zero rows."
+  },
+  {
+   "q": "Is granting to anon dangerous?",
+   "a": "Only if RLS is off or your policies are too open. With RLS on, the grant just allows the policies to be evaluated."
+  }
+ ]
+}

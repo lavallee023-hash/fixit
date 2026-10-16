@@ -1,0 +1,45 @@
+{
+ "slug": "supabase-jwt-expired",
+ "error": "JWT expired",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Supabase rejected the request because the access token your app sent is past its expiry time (1 hour by default). The user is not really logged out; the app just sent an old token instead of refreshing it.",
+ "causes": [
+  "The app stores the access_token itself (e.g. in localStorage or state) and reuses it after it expires instead of letting supabase-js manage the session.",
+  "A second Supabase client was created with a hard-coded Authorization header, so auto-refresh never applies to it.",
+  "The browser tab slept (laptop lid closed) and a request fired before the refresh finished.",
+  "Server code (Edge Function, API route) is passed a token captured at login hours earlier."
+ ],
+ "steps": [
+  {
+   "text": "Create one Supabase client for the whole app and let it manage the session. Do not pass a fixed Authorization header.",
+   "code": "import { createClient } from '@supabase/supabase-js'\nexport const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY, {\n  auth: { persistSession: true, autoRefreshToken: true }\n})"
+  },
+  {
+   "text": "Whenever you need a token (e.g. to call your own API), read it fresh right before the request instead of caching it.",
+   "code": "const { data: { session } } = await supabase.auth.getSession()\nawait fetch('/api/thing', { headers: { Authorization: `Bearer ${session?.access_token}` } })"
+  },
+  {
+   "text": "Listen for auth changes so the UI updates when a refresh fails and the user really is signed out.",
+   "code": "supabase.auth.onAuthStateChange((event, session) => {\n  if (event === 'SIGNED_OUT' || !session) router.push('/login')\n})"
+  },
+  {
+   "text": "To call a Supabase Edge Function, use supabase.functions.invoke(), which attaches the current token for you."
+  },
+  {
+   "text": "Test it: in DevTools > Application > Local Storage, find the sb-...-auth-token entry, wait past expiry (or temporarily lower JWT expiry in Auth settings) and confirm requests still succeed."
+  }
+ ],
+ "prompt": "My app gets 'JWT expired' errors from Supabase after the user has been logged in for about an hour. Make sure the whole app uses a single Supabase client created with autoRefreshToken: true and persistSession: true, remove any place where we store or hard-code the access_token, and read the token with supabase.auth.getSession() right before any fetch that needs it. Add an onAuthStateChange listener that sends the user to /login on SIGNED_OUT.",
+ "faq": [
+  {
+   "q": "Should I just increase the JWT expiry?",
+   "a": "You can, under Auth settings, but it only delays the error and makes stolen tokens valid longer. Fix the refresh instead."
+  },
+  {
+   "q": "Why does it only happen sometimes?",
+   "a": "It only fails on requests made with a token older than the expiry time, typically after an hour of idling or a sleeping tab."
+  }
+ ]
+}

@@ -1,10 +1,11 @@
 import os, sys, json, hashlib, tempfile, time, datetime, threading, uuid, html
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))); sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from flask import Flask, render_template, request, abort
+from flask import Flask, render_template, request, abort, redirect
 from fixit.agent import diagnose, Intake, TOOLS
 from fixit.llm import LLMUnavailable
 from fixit.secrets import redact
 import credits
+import encyclopedia
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
@@ -88,6 +89,22 @@ def paid():
     try: info = credits.verify_session(request.args.get("session_id", ""))
     except credits.PaymentError as e: return render_template("paid.html", error=str(e)), 400
     return render_template("paid.html", info=info, cs=credits.status(info["email"]))
+
+ERRORS = encyclopedia.load()
+
+@app.get("/errors/")
+def errors_index():
+    groups = {}
+    for e in ERRORS.values(): groups.setdefault(e["platform"], []).append(e)
+    return render_template("errors_index.html", errors=ERRORS, groups=sorted(groups.items()))
+@app.get("/errors")
+def errors_noslash(): return redirect("/errors/", 301)
+@app.get("/errors/<slug>")
+def error_page(slug):
+    e = ERRORS.get(slug)
+    if not e: abort(404)
+    related = [r for r in ERRORS.values() if r["platform"] == e["platform"] and r["slug"] != slug][:5]
+    return render_template("error_page.html", e=e, ld=encyclopedia.jsonld(e), inline=encyclopedia.inline, related=related)
 
 @app.get("/robots.txt")
 def robots(): return app.send_static_file("robots.txt")

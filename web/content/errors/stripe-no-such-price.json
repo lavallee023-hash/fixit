@@ -1,0 +1,41 @@
+{
+ "slug": "stripe-no-such-price",
+ "error": "StripeInvalidRequestError: No such price: 'price_...'",
+ "platform": "Stripe",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Stripe can't find that price ID with the API key you used. Almost always the price exists in a different mode (test vs live) or a different Stripe account than the key.",
+ "causes": [
+  "Price created in test mode but the app uses a live secret key, or the reverse.",
+  "Price ID copied from a different Stripe account or sandbox.",
+  "A product ID (prod_...) was used where a price ID (price_...) is required.",
+  "The price ID is hard-coded in code but env differs per environment."
+ ],
+ "steps": [
+  {
+   "text": "In Stripe Dashboard, check the mode toggle, open the product, and copy the price ID (price_...) shown under Pricing."
+  },
+  {
+   "text": "Compare it to your key: sk_test_ needs test prices, sk_live_ needs live prices. Recreate the product in live mode before going live."
+  },
+  {
+   "text": "Keep price IDs in env vars per environment instead of hard-coding them.",
+   "code": "const session = await stripe.checkout.sessions.create({\n  mode: 'payment',\n  line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],\n  success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,\n  cancel_url: `${origin}/pricing`,\n})"
+  },
+  {
+   "text": "Quick check from a terminal using the same key.",
+   "code": "curl https://api.stripe.com/v1/prices/price_123 -u sk_test_xxx:"
+  }
+ ],
+ "prompt": "Stripe checkout fails with 'No such price'. Move all Stripe price IDs into environment variables (STRIPE_PRICE_ID etc.), make sure the server uses the matching secret key for the same mode, and use price_ IDs not prod_ IDs in line_items. List every place a price or product ID is hard-coded.",
+ "faq": [
+  {
+   "q": "I switched to live and it broke?",
+   "a": "Test-mode products don't exist in live mode; recreate them in live and update the IDs."
+  },
+  {
+   "q": "Can I use the price ID in the browser?",
+   "a": "Price IDs are not secret, but create the Checkout Session on the server with your secret key."
+  }
+ ]
+}

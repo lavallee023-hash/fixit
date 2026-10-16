@@ -1,0 +1,44 @@
+{
+ "slug": "supabase-relation-does-not-exist",
+ "error": "relation \"public.table\" does not exist",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Postgres (42P01) cannot find a table with that name. The table either was never created in this project, is in a different schema, or the name differs in case or spelling.",
+ "causes": [
+  "The AI builder wrote code for a table but the migration never ran on your Supabase project (common when Lovable/Bolt are connected to a different project than you think).",
+  "The table was created with quotes and capitals, e.g. \"Profiles\", but queried as profiles.",
+  "You are pointing at a different project, for example the dev URL in preview and prod URL in production.",
+  "The table is in another schema, not public."
+ ],
+ "steps": [
+  {
+   "text": "In Supabase Table Editor, check the table really exists in this project and note its exact name and schema."
+  },
+  {
+   "text": "List tables from SQL to see exact spelling and case.",
+   "code": "select table_schema, table_name from information_schema.tables\nwhere table_schema not in ('pg_catalog','information_schema') order by 1,2;"
+  },
+  {
+   "text": "If it is missing, run the CREATE TABLE migration in the SQL Editor (or ask your builder to re-apply it), then enable RLS and add policies."
+  },
+  {
+   "text": "If it exists with capitals, rename it to lowercase so the client and SQL agree.",
+   "code": "alter table public.\"Profiles\" rename to profiles;"
+  },
+  {
+   "text": "Confirm VITE_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL in each environment points at the project that has the table."
+  }
+ ],
+ "prompt": "My app errors with 'relation \"public.<TABLE>\" does not exist'. Check every migration and the Supabase client URL. Generate the missing CREATE TABLE migration for <TABLE> with the columns the code uses, lowercase snake_case names, row level security enabled, and policies so users can only access their own rows. List any code that references a table name with different casing.",
+ "faq": [
+  {
+   "q": "Why does it work in preview but not when published?",
+   "a": "Preview and production are often wired to different Supabase projects or env vars; the table exists in only one."
+  },
+  {
+   "q": "Do I need to restart anything after creating the table?",
+   "a": "No for SQL errors. If the REST API then says 'Could not find the table in the schema cache', run NOTIFY pgrst, 'reload schema';"
+  }
+ ]
+}

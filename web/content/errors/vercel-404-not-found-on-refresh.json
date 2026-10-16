@@ -1,0 +1,40 @@
+{
+ "slug": "vercel-404-not-found-on-refresh",
+ "error": "404: NOT_FOUND on Vercel after refreshing a page (Vite / React SPA)",
+ "platform": "Vercel",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Vercel serves your built files, but /settings is a client-side route with no file behind it, so a refresh or direct link returns Vercel's 404: NOT_FOUND page.",
+ "causes": [
+  "A Vite/CRA single-page app was deployed without a rewrite to index.html.",
+  "Output directory set wrong, so even / is missing (Framework preset 'Other' with no dist).",
+  "vercel.json uses old routes syntax that conflicts with rewrites."
+ ],
+ "steps": [
+  {
+   "text": "Add vercel.json in the project root.",
+   "code": "{\n  \"rewrites\": [{ \"source\": \"/(.*)\", \"destination\": \"/index.html\" }]\n}"
+  },
+  {
+   "text": "In Project Settings > Build & Development, set Framework Preset to Vite (Output Directory dist)."
+  },
+  {
+   "text": "If you have serverless functions in /api, keep them working by excluding them.",
+   "code": "{\n  \"rewrites\": [{ \"source\": \"/((?!api/).*)\", \"destination\": \"/index.html\" }]\n}"
+  },
+  {
+   "text": "Redeploy, then open a deep link in a private window to confirm."
+  }
+ ],
+ "prompt": "My Vite React app deployed on Vercel returns 404: NOT_FOUND when I refresh any page except the home page. Add a vercel.json with a rewrite sending all non-/api paths to /index.html, and confirm the build outputs to dist.",
+ "faq": [
+  {
+   "q": "Is this a Next.js problem?",
+   "a": "No. Next.js handles routes itself on Vercel; this affects single-page apps."
+  },
+  {
+   "q": "Will this hurt SEO?",
+   "a": "No more than any SPA; unknown URLs return your app, which should show its own not-found screen."
+  }
+ ]
+}

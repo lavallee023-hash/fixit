@@ -1,0 +1,40 @@
+{
+ "slug": "supabase-invalid-refresh-token-not-found",
+ "error": "AuthApiError: Invalid Refresh Token: Refresh Token Not Found",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "The browser had a saved Supabase session, but the refresh token in it is no longer valid on the server, so Supabase cannot renew the session. The user must sign in again.",
+ "causes": [
+  "The user signed out elsewhere, or you reset their password / deleted the user.",
+  "Two tabs or two Supabase clients refreshed at the same time and one used an already-rotated token.",
+  "A session saved for a different Supabase project (e.g. you switched projects but kept the localStorage).",
+  "Server-side (Next.js) cookies not being updated after a refresh."
+ ],
+ "steps": [
+  {
+   "text": "Handle it gracefully: if getting the session fails, clear it and send the user to login.",
+   "code": "const { data, error } = await supabase.auth.getSession()\nif (error) { await supabase.auth.signOut({ scope: 'local' }); router.push('/login') }"
+  },
+  {
+   "text": "Use one shared Supabase client instance in the browser; don't call createClient in multiple components."
+  },
+  {
+   "text": "In Next.js, use @supabase/ssr with the middleware from the Supabase docs so refreshed tokens are written back to cookies."
+  },
+  {
+   "text": "For yourself while testing: clear site data (DevTools > Application > Clear storage) after switching Supabase projects."
+  }
+ ],
+ "prompt": "Users hit 'Invalid Refresh Token: Refresh Token Not Found' and get stuck. Ensure there is exactly one browser Supabase client, and on this error call supabase.auth.signOut({ scope: 'local' }) and redirect to /login instead of showing a broken page. If this is Next.js, set up @supabase/ssr middleware that refreshes and writes session cookies.",
+ "faq": [
+  {
+   "q": "Is this a security problem?",
+   "a": "No, it's Supabase correctly refusing an invalid token."
+  },
+  {
+   "q": "Why after switching projects?",
+   "a": "The old project's session stays in localStorage; the new project doesn't know its token."
+  }
+ ]
+}

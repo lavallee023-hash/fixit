@@ -1,0 +1,41 @@
+{
+ "slug": "process-is-not-defined-vite",
+ "error": "ReferenceError: process is not defined",
+ "platform": "Vite (Lovable, Bolt)",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Browser code tried to use process.env, which only exists in Node. Vite apps expose env vars through import.meta.env instead, so the page crashes with this error.",
+ "causes": [
+  "Code copied from a Next.js or Create React App project uses process.env.REACT_APP_... or process.env.NEXT_PUBLIC_....",
+  "A library written for Node reads process.env in the browser.",
+  "The AI mixed server and client code in one file."
+ ],
+ "steps": [
+  {
+   "text": "Replace process.env with import.meta.env and use the VITE_ prefix.",
+   "code": "// before\nconst url = process.env.REACT_APP_API_URL\n// after\nconst url = import.meta.env.VITE_API_URL"
+  },
+  {
+   "text": "Rename the vars in .env and in your host's env settings to start with VITE_, then restart the dev server / redeploy.",
+   "code": "VITE_API_URL=https://api.myapp.com"
+  },
+  {
+   "text": "If a dependency needs it, define it at build time in vite.config.ts.",
+   "code": "export default defineConfig({\n  define: { 'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'production') }\n})"
+  },
+  {
+   "text": "Never move secret keys to VITE_ variables: anything with VITE_ ends up in the public JavaScript bundle."
+  }
+ ],
+ "prompt": "My Vite app crashes with 'ReferenceError: process is not defined'. Replace all browser-side process.env usage with import.meta.env.VITE_*, list the env vars I need to rename in .env and my hosting dashboard, and flag any secret that must move to a server or Edge Function instead of a VITE_ variable.",
+ "faq": [
+  {
+   "q": "Should I add a process polyfill?",
+   "a": "Only for a library that truly needs it; for your own code, use import.meta.env."
+  },
+  {
+   "q": "Is my Supabase anon key OK as VITE_?",
+   "a": "Yes, it's meant to be public (with RLS on). The service_role key is not."
+  }
+ ]
+}

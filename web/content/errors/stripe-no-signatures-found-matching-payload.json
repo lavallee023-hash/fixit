@@ -1,0 +1,45 @@
+{
+ "slug": "stripe-no-signatures-found-matching-payload",
+ "error": "No signatures found matching the expected signature for payload",
+ "platform": "Stripe",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Stripe's library could not verify that the webhook really came from Stripe. Either the signing secret is wrong, or your framework changed the request body before you checked it (the signature is computed over the exact raw bytes).",
+ "causes": [
+  "The body was parsed as JSON before verification (express.json(), Next.js reading req.json()).",
+  "Using the wrong whsec_ secret: the CLI secret in production, test vs live mode, or another endpoint's secret.",
+  "Whitespace or newline in the env var.",
+  "A proxy re-encoding the body."
+ ],
+ "steps": [
+  {
+   "text": "Express: give the webhook route the raw body, and register it before express.json().",
+   "code": "app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {\n  const event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET)\n  // handle event.type ...\n  res.json({ received: true })\n})\napp.use(express.json())"
+  },
+  {
+   "text": "Next.js App Router: use req.text(), not req.json().",
+   "code": "export async function POST(req) {\n  const body = await req.text()\n  const sig = req.headers.get('stripe-signature')\n  const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET)\n  return Response.json({ received: true })\n}"
+  },
+  {
+   "text": "Supabase Edge Function (Deno): read await req.text() and use the async verifier.",
+   "code": "const event = await stripe.webhooks.constructEventAsync(body, sig, Deno.env.get('STRIPE_WEBHOOK_SECRET')!, undefined, Stripe.createSubtleCryptoProvider())"
+  },
+  {
+   "text": "Copy the signing secret from Developers > Webhooks > your endpoint (in the same mode, test or live). The stripe listen CLI prints a different secret for local testing only."
+  },
+  {
+   "text": "Resend a failed event from the Dashboard to test."
+  }
+ ],
+ "prompt": "Stripe webhooks fail with 'No signatures found matching the expected signature for payload'. Change the webhook handler to verify using the raw request body (express.raw / req.text(), or constructEventAsync with SubtleCrypto in Deno) before any JSON parsing, read STRIPE_WEBHOOK_SECRET from env, and make sure no global JSON middleware runs on this route.",
+ "faq": [
+  {
+   "q": "Works locally, fails in production?",
+   "a": "Local uses the stripe listen secret; production needs the endpoint's own whsec_ from the Dashboard."
+  },
+  {
+   "q": "Can I skip verification?",
+   "a": "No. Anyone could then fake 'payment succeeded' events."
+  }
+ ]
+}

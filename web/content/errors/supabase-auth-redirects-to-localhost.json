@@ -1,0 +1,40 @@
+{
+ "slug": "supabase-auth-redirects-to-localhost",
+ "error": "Supabase magic link / confirm email redirects to localhost:3000",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "The email link sends users to http://localhost:3000, which only exists on your own computer, so they see 'This site can't be reached'. Supabase uses the Site URL setting, or the redirect URL your code passed, when it builds the link.",
+ "causes": [
+  "Site URL in Supabase is still the default http://localhost:3000.",
+  "The code passes emailRedirectTo / redirectTo that is not in the Redirect URLs allow list, so Supabase falls back to Site URL.",
+  "The redirect is hard-coded to localhost in the code the AI generated."
+ ],
+ "steps": [
+  {
+   "text": "Supabase dashboard > Authentication > URL Configuration: set Site URL to your production URL, e.g. https://myapp.lovable.app or your custom domain."
+  },
+  {
+   "text": "Add every place users may come from to Redirect URLs, wildcards allowed.",
+   "code": "https://myapp.com/**\nhttps://*.vercel.app/**\nhttp://localhost:5173/**"
+  },
+  {
+   "text": "Pass the redirect from the current origin rather than hard-coding it.",
+   "code": "await supabase.auth.signInWithOtp({ email,\n  options: { emailRedirectTo: `${window.location.origin}/auth/callback` } })"
+  },
+  {
+   "text": "Send a new link to test. Old emails still contain the old URL."
+  }
+ ],
+ "prompt": "Supabase auth emails redirect users to localhost:3000. Replace every hard-coded localhost redirect with `${window.location.origin}/auth/callback` in signUp, signInWithOtp, resetPasswordForEmail and OAuth calls, and tell me exactly which Site URL and Redirect URLs to set in Supabase Authentication > URL Configuration for my production and preview domains.",
+ "faq": [
+  {
+   "q": "Do I need to change the email template?",
+   "a": "Usually no. The default template uses {{ .ConfirmationURL }}, which respects these settings."
+  },
+  {
+   "q": "Google login also goes to localhost, same fix?",
+   "a": "Yes, pass redirectTo in signInWithOAuth and allow-list the URL."
+  }
+ ]
+}

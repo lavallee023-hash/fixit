@@ -1,0 +1,40 @@
+{
+ "slug": "supabase-email-not-confirmed",
+ "error": "AuthApiError: Email not confirmed",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "The account exists but Supabase requires the user to click the confirmation link before signing in, and they have not yet (or the email never arrived).",
+ "causes": [
+  "'Confirm email' is enabled in Auth > Providers > Email (the default).",
+  "The confirmation email went to spam or was never sent because the built-in email service is heavily rate limited.",
+  "The link pointed at localhost or a wrong Site URL, so the click failed.",
+  "Test users were created by the app before you set up email."
+ ],
+ "steps": [
+  {
+   "text": "Tell the user what happened: catch this error and show 'Check your inbox to confirm your email' with a resend button.",
+   "code": "const { error } = await supabase.auth.resend({ type: 'signup', email,\n  options: { emailRedirectTo: `${window.location.origin}/auth/callback` } })"
+  },
+  {
+   "text": "Set Auth > URL Configuration > Site URL to your live domain and add your preview/local URLs under Redirect URLs."
+  },
+  {
+   "text": "For real users, configure custom SMTP (Auth > SMTP settings, e.g. Resend, Postmark, SendGrid). The built-in sender is only meant for testing."
+  },
+  {
+   "text": "For your own test accounts, confirm them manually in Authentication > Users, or turn off 'Confirm email' only during development."
+  }
+ ],
+ "prompt": "Sign in fails with 'Email not confirmed'. Catch this specific Supabase error on the login page and show a friendly message with a 'Resend confirmation email' button that calls supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: window.location.origin + '/auth/callback' } }). Make sure signUp also passes emailRedirectTo.",
+ "faq": [
+  {
+   "q": "Can I just disable email confirmation?",
+   "a": "Yes, but then anyone can sign up with someone else's email. Fine for prototypes, risky for production."
+  },
+  {
+   "q": "Why are users not getting the email?",
+   "a": "Usually the default email service limits or spam filtering. Set up custom SMTP."
+  }
+ ]
+}

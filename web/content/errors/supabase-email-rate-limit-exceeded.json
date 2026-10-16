@@ -1,0 +1,39 @@
+{
+ "slug": "supabase-email-rate-limit-exceeded",
+ "error": "AuthApiError: email rate limit exceeded",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Supabase stopped sending auth emails (signup confirmation, magic links, password resets) because the project hit its hourly email limit. The built-in email sender allows only a handful per hour.",
+ "causes": [
+  "You are using Supabase's default SMTP, which is for testing only and has a very low hourly limit.",
+  "Repeated testing of signup or magic links from the same project.",
+  "A bug calls signUp or signInWithOtp in a loop or on every render."
+ ],
+ "steps": [
+  {
+   "text": "Set up custom SMTP: Authentication > Emails > SMTP Settings (Resend, Postmark, SendGrid, AWS SES all work). This lifts the tiny default limit."
+  },
+  {
+   "text": "After custom SMTP, adjust limits under Authentication > Rate Limits."
+  },
+  {
+   "text": "Make sure the email call only runs on a button submit, and disable the button while it's pending.",
+   "code": "const [sending, setSending] = useState(false)\nasync function onSubmit(){ if (sending) return; setSending(true)\n  try { await supabase.auth.signInWithOtp({ email }) } finally { setSending(false) } }"
+  },
+  {
+   "text": "While testing, confirm users manually in Authentication > Users or use password sign-in so you don't burn the email quota."
+  }
+ ],
+ "prompt": "Users see 'email rate limit exceeded' from Supabase. Make sure signUp, signInWithOtp and resetPasswordForEmail only run on explicit form submit with a disabled-while-sending button and a 60-second resend cooldown, and show a friendly 'Too many emails, try again in a few minutes' message for this error. I will configure custom SMTP in Supabase.",
+ "faq": [
+  {
+   "q": "How long do I wait?",
+   "a": "The limit is per hour, so it clears within the hour."
+  },
+  {
+   "q": "Is custom SMTP free?",
+   "a": "Several providers have free tiers that are plenty for a small app."
+  }
+ ]
+}

@@ -1,0 +1,44 @@
+{
+ "slug": "vercel-function-invocation-timeout",
+ "error": "504: GATEWAY_TIMEOUT FUNCTION_INVOCATION_TIMEOUT",
+ "platform": "Vercel",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Your Vercel serverless function (an API route or server action) ran longer than its maximum duration, so Vercel killed it and returned a 504.",
+ "causes": [
+  "Slow AI calls (OpenAI, Anthropic) waiting for a long full response.",
+  "A database connection that never resolves, e.g. wrong host or a pool exhausted by serverless connections.",
+  "Awaiting something that never returns, such as a missing res.end() or an un-awaited loop.",
+  "Doing heavy work (scraping, PDFs, many API calls) in one request."
+ ],
+ "steps": [
+  {
+   "text": "Find which step is slow: add timing logs and check Vercel > Project > Logs for the request.",
+   "code": "console.time('ai'); const r = await openai.chat.completions.create(...); console.timeEnd('ai')"
+  },
+  {
+   "text": "Raise the limit within your plan's maximum (Next.js App Router route).",
+   "code": "export const maxDuration = 60 // seconds"
+  },
+  {
+   "text": "Stream AI responses so the user sees output right away instead of waiting for the whole response."
+  },
+  {
+   "text": "Use a pooled connection string for Postgres from serverless (Supabase: the pooler URL on port 6543), and create the client outside the handler so it is reused."
+  },
+  {
+   "text": "Move long jobs to a background queue (Inngest, QStash, Supabase Edge Function + cron) and return immediately with a job id."
+  }
+ ],
+ "prompt": "My Vercel API route fails with FUNCTION_INVOCATION_TIMEOUT. Add timing logs around each slow step, stream the AI response instead of awaiting the full completion, set export const maxDuration appropriate for my plan, use the pooled database URL with the client created outside the handler, and make sure every code path returns a response.",
+ "faq": [
+  {
+   "q": "What is the default limit?",
+   "a": "It depends on your plan and whether Fluid compute is on; check Vercel's Functions limits page. Raising maxDuration only works up to your plan's max."
+  },
+  {
+   "q": "Is the Edge runtime faster?",
+   "a": "It starts faster but must begin responding quickly; streaming is the real fix for AI calls."
+  }
+ ]
+}

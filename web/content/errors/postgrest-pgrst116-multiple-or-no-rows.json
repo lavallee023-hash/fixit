@@ -1,0 +1,46 @@
+{
+ "slug": "postgrest-pgrst116-multiple-or-no-rows",
+ "error": "JSON object requested, multiple (or no) rows returned",
+ "platform": "Supabase",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "You called .single() and the query returned zero rows or more than one (PostgREST code PGRST116). .single() insists on exactly one row.",
+ "causes": [
+  "The row does not exist yet, e.g. a profile row that was never created after signup.",
+  "RLS hides the row from this user, so the query sees zero rows.",
+  "The filter matches several rows because the column is not unique.",
+  "An insert/update with .select().single() affected zero rows because a policy blocked it."
+ ],
+ "steps": [
+  {
+   "text": "If 'no row' is a normal case, use .maybeSingle(), which returns data: null instead of an error.",
+   "code": "const { data: profile, error } = await supabase\n  .from('profiles').select('*').eq('id', user.id).maybeSingle()\nif (!profile) { /* create it or show onboarding */ }"
+  },
+  {
+   "text": "If you expect exactly one row, make the column unique so duplicates cannot happen.",
+   "code": "alter table public.profiles add constraint profiles_user_unique unique (user_id);"
+  },
+  {
+   "text": "Create profile rows automatically on signup with a trigger.",
+   "code": "create function public.handle_new_user() returns trigger\nlanguage plpgsql security definer set search_path = '' as $$\nbegin\n  insert into public.profiles (id) values (new.id);\n  return new;\nend; $$;\ncreate trigger on_auth_user_created after insert on auth.users\n  for each row execute procedure public.handle_new_user();"
+  },
+  {
+   "text": "Check RLS: make sure a SELECT policy lets the user see their own row, for example using (auth.uid() = id)."
+  },
+  {
+   "text": "For existing users with no profile, backfill once.",
+   "code": "insert into public.profiles (id) select id from auth.users on conflict do nothing;"
+  }
+ ],
+ "prompt": "Supabase throws PGRST116 'JSON object requested, multiple (or no) rows returned'. Find every .single() call; switch to .maybeSingle() wherever the row may not exist and handle null. Add a Postgres trigger that creates a profiles row for each new auth user, backfill missing profiles, and add a unique constraint on the column we filter by. Make sure there is a SELECT RLS policy using auth.uid().",
+ "faq": [
+  {
+   "q": "single() or maybeSingle()?",
+   "a": "Use maybeSingle() when zero rows is valid. Keep single() only when a missing row is a real bug."
+  },
+  {
+   "q": "Why did this appear after I turned on RLS?",
+   "a": "RLS filters out rows the user may not see, so a query that used to return one row now returns zero."
+  }
+ ]
+}

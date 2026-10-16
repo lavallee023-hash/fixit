@@ -1,0 +1,41 @@
+{
+ "slug": "failed-to-fetch-dynamically-imported-module",
+ "error": "TypeError: Failed to fetch dynamically imported module",
+ "platform": "Vite (Lovable, Bolt, v0)",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "The browser tried to load a lazy-loaded JavaScript chunk that no longer exists. After a new deploy, the file names change (they include a hash), but users with the old page open still ask for the old files.",
+ "causes": [
+  "You redeployed while users had the app open; the old chunk files were removed.",
+  "The host serves index.html for missing .js files (SPA fallback), so the browser gets HTML instead of JS.",
+  "A CDN or service worker cached the old index.html.",
+  "Wrong base path, so chunks are requested from the wrong URL."
+ ],
+ "steps": [
+  {
+   "text": "Reload once automatically when a chunk fails (Vite fires vite:preloadError).",
+   "code": "window.addEventListener('vite:preloadError', (event) => {\n  event.preventDefault()\n  if (!sessionStorage.getItem('chunk-reload')) {\n    sessionStorage.setItem('chunk-reload', '1')\n    window.location.reload()\n  }\n})"
+  },
+  {
+   "text": "Do not cache index.html; cache hashed assets for a long time. Netlify example (netlify.toml):",
+   "code": "[[headers]]\n  for = \"/index.html\"\n  [headers.values]\n    Cache-Control = \"no-cache\"\n[[headers]]\n  for = \"/assets/*\"\n  [headers.values]\n    Cache-Control = \"public, max-age=31536000, immutable\""
+  },
+  {
+   "text": "If the app lives under a subpath, set base in vite.config.ts (e.g. base: '/app/')."
+  },
+  {
+   "text": "If you added a service worker/PWA plugin, make it update on new versions (registerType: 'autoUpdate')."
+  }
+ ],
+ "prompt": "After each deploy some users get 'Failed to fetch dynamically imported module'. Add a vite:preloadError listener that reloads the page once (guarded with sessionStorage), set no-cache headers for index.html and long immutable caching for /assets, and check vite.config base is correct.",
+ "faq": [
+  {
+   "q": "Is my code broken?",
+   "a": "Usually not; it's old tabs asking for deleted files after a deploy."
+  },
+  {
+   "q": "Happens in Lovable preview?",
+   "a": "A hard refresh (Ctrl/Cmd+Shift+R) fixes it there."
+  }
+ ]
+}

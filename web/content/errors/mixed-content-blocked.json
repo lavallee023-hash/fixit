@@ -1,0 +1,40 @@
+{
+ "slug": "mixed-content-blocked",
+ "error": "Mixed Content: The page was loaded over HTTPS, but requested an insecure resource",
+ "platform": "Browser (Vercel, Netlify, Lovable)",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "Your live site is HTTPS, but it is calling an API, image or script over plain http://. Browsers block this for security, so the request never happens.",
+ "causes": [
+  "An API base URL like http://localhost:8000 or http://my-server-ip left in env vars or code.",
+  "A backend (e.g. on a VPS) without an HTTPS certificate.",
+  "Image URLs stored in the database with http://."
+ ],
+ "steps": [
+  {
+   "text": "Open DevTools > Console to see the exact blocked URL."
+  },
+  {
+   "text": "Point the frontend at an https:// URL, set per environment.",
+   "code": "# .env.production\nVITE_API_URL=https://api.myapp.com"
+  },
+  {
+   "text": "Give your backend HTTPS: host it somewhere with automatic TLS (Render, Railway, Fly, Replit deployments) or put it behind Cloudflare / Caddy with a certificate."
+  },
+  {
+   "text": "For third-party assets that support HTTPS, just change the scheme. Fix stored URLs once.",
+   "code": "update public.posts set image_url = replace(image_url, 'http://', 'https://') where image_url like 'http://%';"
+  }
+ ],
+ "prompt": "My HTTPS site shows 'Mixed Content' errors. Find every http:// URL in the code, env files and API base URLs, move the API URL into an environment variable with an https value for production, and tell me which external resources don't support HTTPS.",
+ "faq": [
+  {
+   "q": "Can I allow mixed content?",
+   "a": "Not reliably; modern browsers block it. Use HTTPS everywhere."
+  },
+  {
+   "q": "Localhost in production?",
+   "a": "localhost means the visitor's own computer, so it can never work in production."
+  }
+ ]
+}

@@ -1,0 +1,43 @@
+{
+ "slug": "npm-eresolve-unable-to-resolve-dependency-tree",
+ "error": "npm ERR! ERESOLVE unable to resolve dependency tree",
+ "platform": "npm (Bolt, Cursor, Vercel, Netlify)",
+ "batch": 1,
+ "date": "2026-10-15",
+ "meaning": "npm refused to install because two packages need incompatible versions of the same peer dependency, usually React. Since npm 7, peer conflicts stop the install instead of just warning.",
+ "causes": [
+  "The AI added a library that only supports an older React (e.g. requires react@^17 or ^18) while the project uses React 19.",
+  "Mixed major versions of a framework family (e.g. @tanstack, eslint plugins, date-fns adapters).",
+  "The lockfile was deleted or regenerated with a different npm version on the build server."
+ ],
+ "steps": [
+  {
+   "text": "Read the lines after 'Could not resolve dependency': they name the package and the peer it wants, for example 'peer react@\"^18\" from some-lib'."
+  },
+  {
+   "text": "Best fix: upgrade the offending package to a version that supports your React.",
+   "code": "npm view some-lib peerDependencies\nnpm install some-lib@latest"
+  },
+  {
+   "text": "If none exists, pin React to the version the library supports, or swap the library for a maintained alternative."
+  },
+  {
+   "text": "Temporary workaround (still deploys): tell npm to use old peer behaviour, locally and on the host.",
+   "code": "# .npmrc in project root\nlegacy-peer-deps=true"
+  },
+  {
+   "text": "Commit package-lock.json so Vercel/Netlify install the exact same tree."
+  }
+ ],
+ "prompt": "npm install fails with ERESOLVE unable to resolve dependency tree. Here is the full error: <PASTE>. Identify which package has the conflicting peer dependency, upgrade it to a version compatible with our React version (or suggest a maintained replacement), and only if no compatible version exists add legacy-peer-deps=true to .npmrc. Do not use --force.",
+ "faq": [
+  {
+   "q": "Is --legacy-peer-deps safe?",
+   "a": "Usually works, but you may run a library on a React version it was not tested with. Prefer upgrading."
+  },
+  {
+   "q": "Why does it build locally but not on Vercel?",
+   "a": "Your local node_modules may be old; the host installs fresh from package.json and the lockfile."
+  }
+ ]
+}
