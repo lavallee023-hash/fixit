@@ -7,5 +7,5 @@
 <div class="card">Confidence: <b>{{ '%d' % (r.confidence*100) }}%</b>
 {% if qid %}<p class="warn">This one's tricky ({{ r.escalate_reasons|join(', ') }}). A human (Brian) will review case <b>#{{ qid }}</b> and email you. Meanwhile, try the steps above.</p>{% endif %}
 {% if r.missing_info %}<p class="small">Would help: {{ r.missing_info|join('; ') }}</p>{% endif %}
-<p class="small">{{ left }} free fixes left this month.</p></div>
+<p class="small">{% if cs.unlimited_until %}Unlimited until {{ cs.unlimited_until }}.{% elif cs.fixes %}{{ cs.fixes }} paid fixes left. {{ left }} free left this month.{% else %}{{ left }} free fixes left this month.{% endif %}</p></div>
 <a class="btn" href="/">Diagnose another</a>{% endblock %}

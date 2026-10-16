@@ -1,0 +1,50 @@
+1|Google Search Console|https://search.google.com/search-console|free|yes (Google acct)|no - Google acct|easy|search
+2|Bing Webmaster Tools|https://www.bing.com/webmasters|free|yes (MS/Google acct)|partial|easy|search
+3|IndexNow (via Bing/API)|https://www.indexnow.org|free|no (key file on site)|n/a|easy|search
+4|Yandex Webmaster|https://webmaster.yandex.com|free|yes|yes|easy|search
+5|Product Hunt|https://www.producthunt.com/posts/new|free|yes|yes|medium|launch
+6|Hacker News Show HN|https://news.ycombinator.com/submit|free|yes|yes (no email needed)|medium|community
+7|Reddit r/SideProject|https://www.reddit.com/r/SideProject/submit|free|yes|yes|easy|community
+8|Indie Hackers|https://www.indiehackers.com/products|free|yes|yes|easy|community
+9|DEV.to|https://dev.to/enter|free|yes|yes|easy|community
+10|Hashnode|https://hashnode.com/onboard|free|yes|yes|easy|community
+11|BetaList|https://betalist.com/submit|free (slow queue) / paid expedite|yes|EXISTING ACCOUNT|easy|launch
+12|SaaSHub|https://www.saashub.com/submit|free|yes|EXISTING ACCOUNT|easy|saas
+13|AlternativeTo|https://alternativeto.net/manage/new|free|yes|EXISTING ACCOUNT|easy|saas
+14|StartupInspire|https://www.startupinspire.com/submit-startup|free|yes|EXISTING ACCOUNT|easy|launch
+15|ToolFame|https://toolfame.com/submit|free|yes|EXISTING ACCOUNT|easy|ai-dir
+16|Fazier|https://fazier.com/launch|free tier|yes|EXISTING ACCOUNT|easy|launch
+17|Dang.ai|https://dang.ai/submit|free (backlink) / paid|yes|EXISTING ACCOUNT|easy|ai-dir
+18|ToolAI|https://toolai.io/submit|free|yes|EXISTING ACCOUNT|easy|ai-dir
+19|ToolScout|https://toolscout.ai/submit|free|yes|EXISTING ACCOUNT|easy|ai-dir
+20|TinyLaunch|https://www.tinylaunch.com|free|yes|EXISTING ACCOUNT|easy|launch
+21|LaunchingNext|https://www.launchingnext.com/submit/|free|no|EXISTING ACCOUNT|easy|launch
+22|ToolPilot|https://www.toolpilot.ai/pages/submit-your-ai-tool|free|yes|EXISTING ACCOUNT|easy|ai-dir
+23|Uneed|https://www.uneed.best/submit-a-tool|free (queue)|yes|yes|easy|launch
+24|Peerlist Launchpad|https://peerlist.io/launchpad|free|yes|yes|medium|launch
+25|DevHunt|https://devhunt.org|free|yes (GitHub)|no - GitHub login|easy|launch
+26|Microlaunch|https://microlaunch.net|free|yes|yes|easy|launch
+27|Launching.io / OpenHunts|https://openhunts.com|free|yes|yes|easy|launch
+28|SideProjectors|https://www.sideprojectors.com/project/new|free|yes|yes|easy|launch
+29|Startup Stash|https://startupstash.com/add-listing/|free|yes|yes|easy|launch
+30|StartupBase|https://startupbase.io|free|yes|yes|easy|launch
+31|Futurepedia|https://www.futurepedia.io/submit-tool|free basic/paid|yes|yes|medium|ai-dir
+32|There's An AI For That|https://theresanaiforthat.com/submit/|paid mostly|yes|yes|hard|ai-dir
+33|Insidr AI tools|https://www.insidr.ai/submit-tools/|free|no|n/a|easy|ai-dir
+34|AI Tools Directory (aitoolsdirectory.com)|https://aitoolsdirectory.com/submit-tool|free|no|n/a|easy|ai-dir
+35|TopAI.tools|https://topai.tools/submit|free/paid|no|n/a|easy|ai-dir
+36|AItoolnet|https://www.aitoolnet.com/submit|free|yes|yes|easy|ai-dir
+37|AI Valley|https://aivalley.ai/submit-tool/|free|no|n/a|easy|ai-dir
+38|Toolify.ai|https://www.toolify.ai/submit|paid (free w/ backlink sometimes)|yes|yes|medium|ai-dir
+39|AIcyclopedia|https://www.aicyclopedia.com/submit-ai-tool/|free|no|n/a|easy|ai-dir
+40|Easy With AI|https://easywithai.com/submit-tool/|free/paid|no|n/a|easy|ai-dir
+41|OpenTools|https://opentools.ai/tool-submit|free|no|n/a|easy|ai-dir
+42|AI Scout|https://aiscout.net/submit/|free|no|n/a|easy|ai-dir
+43|SaaSworthy|https://www.saasworthy.com/list-your-product|free|yes|yes|medium|saas
+44|G2|https://sell.g2.com/create-a-profile|free profile|yes|business email pref|hard|saas
+45|Capterra|https://www.capterra.com/vendors/sign-up|free listing|yes|yes|hard|saas
+46|Crunchbase|https://www.crunchbase.com/add-new|free|yes|yes|medium|saas
+47|Lovable Discord/Community showcase|https://discord.com/invite/lovable-dev|free|yes|yes|medium|community
+48|X build-in-public post|https://x.com|free|yes|yes|easy|community
+49|Stack Overflow-style answers (dev communities)|https://www.reddit.com/r/vibecoding/|free|yes|yes|medium|community
+50|BacklinkLog/Launch directories list (Awesome lists GitHub)|https://github.com/mmccaff/PlacesToPostYourStartup|free|yes (GitHub PR)|GitHub|medium|launch

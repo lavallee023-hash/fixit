@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /diagnose
+Disallow: /paid
+Sitemap: https://fixitbot.pythonanywhere.com/sitemap.xml

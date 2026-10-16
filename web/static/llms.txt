@@ -1,0 +1,8 @@
+# FixIt
+> FixIt diagnoses errors in apps built with AI coding tools (Lovable, Bolt, Cursor, Replit, v0) and Supabase. Paste an error, screenshot, or public GitHub repo; get the root cause in plain English, step-by-step fix, and a ready-to-paste prompt for your AI builder.
+
+- Site: https://fixitbot.pythonanywhere.com/
+- Pricing: 3 free fixes per email per month; $9 per fix, $29 for 5 fixes, $19/month unlimited.
+- Common fixes: Supabase "new row violates row-level security policy" (needs INSERT and, with .select(), SELECT policies), Edge Function CORS / "Failed to fetch", Edge Function 401 Invalid JWT with new API keys (verify_jwt), Netlify/Vercel 404 on refresh, Vite env vars (VITE_ prefix), Replit "Application failed to respond" (bind 0.0.0.0 and PORT), Next.js hydration errors, Stripe webhook signature errors.
+- Privacy: never asks for API keys; pasted secrets are redacted and users are told to rotate them; screenshots deleted after analysis.
+- Hard cases are escalated to a human.

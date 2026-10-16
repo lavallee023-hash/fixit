@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block body %}
+{% if error %}<h1>Payment check</h1><p class="err">{{ error }}</p><p>If you were charged, reply to your Stripe receipt and we'll credit you by hand.</p>
+{% else %}<h1>Thanks, you're unlocked ✅</h1>
+<div class="card">Credited to <b>{{ info.email }}</b>:
+{% if cs.unlimited_until %} unlimited fixes until <b>{{ cs.unlimited_until }}</b>{% else %} <b>{{ cs.fixes }}</b> paid fix{{ '' if cs.fixes==1 else 'es' }} available{% endif %}.
+{% if not info.new %}<p class="small">(This payment was already applied.)</p>{% endif %}
+<p>Use the same email on the form and your fixes unlock automatically.</p></div>{% endif %}
+<a class="btn" href="/">Diagnose an error →</a>{% endblock %}

@@ -1,4 +1,4 @@
 {% extends "base.html" %}{% block body %}<h1>You've used your {{ free }} free fixes this month</h1>
 <div class="grid">{% for n,p,l in plans %}<div class="card"><div class="price">{{p}}</div>{{n}}<br>
 {% if l %}<a class="btn" href="{{l}}">Buy</a>{% else %}<span class="small">Paid plans coming soon</span>{% endif %}</div>{% endfor %}</div>
-<p>Your free fixes reset on the 1st. <a href="/">Back</a></p>{% endblock %}
+<p>Pay with the <b>same email</b> you use here and fixes unlock automatically after checkout. Free fixes reset on the 1st. <a href="/">Back</a></p>{% endblock %}
