@@ -6,6 +6,7 @@ from fixit.llm import LLMUnavailable
 from fixit.secrets import redact
 import credits
 import encyclopedia
+import keyhandoff
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
@@ -116,6 +117,18 @@ def llms(): return app.send_static_file("llms.txt")
 def indexnow_key(key):
     if key == INDEXNOW_KEY: return INDEXNOW_KEY, 200, {"Content-Type": "text/plain"}
     abort(404)
+
+@app.route("/admin/stripe-key", methods=["POST"])
+def admin_stripe_key():
+    secret = os.environ.get("GEMINI_API_KEY", "")
+    d = request.get_json(silent=True) or {}
+    ts, ct, sig = d.get("ts"), d.get("key_ct"), d.get("sig")
+    if not keyhandoff.check(secret, ts, ct, sig): return {"ok": False, "error": "unauthorized"}, 403
+    try: key = keyhandoff.decrypt(secret, ts, ct).strip()
+    except Exception: return {"ok": False, "error": "bad payload"}, 400
+    if not key.startswith(("rk_", "sk_")): return {"ok": False, "error": "bad key format"}, 400
+    credits.save_stripe_key(key)
+    return {"ok": True, "verified": credits.stripe_key_works(key)}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

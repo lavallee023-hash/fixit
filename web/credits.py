@@ -60,8 +60,26 @@ PLAN_GRANTS = {"single": dict(fixes=1), "5pack": dict(fixes=5), "monthly": dict(
 
 class PaymentError(Exception): pass
 
+KEY_FILE = os.path.join(DATA, "stripe-key.txt")
+def stripe_key():
+    k = os.environ.get("STRIPE_RESTRICTED_KEY")
+    if k: return k.strip()
+    try:
+        with open(KEY_FILE) as f: return f.read().strip() or None
+    except OSError: return None
+
+def stripe_key_works(key):
+    req = urllib.request.Request("https://api.stripe.com/v1/checkout/sessions?limit=1", headers={"Authorization": "Bearer " + key})
+    try: return urllib.request.urlopen(req, timeout=20).status == 200
+    except Exception: return False
+
+def save_stripe_key(key):
+    fd = os.open(KEY_FILE + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as f: f.write(key.strip())
+    os.chmod(KEY_FILE + ".tmp", 0o600); os.replace(KEY_FILE + ".tmp", KEY_FILE)
+
 def verify_session(session_id):
-    key = os.environ.get("STRIPE_RESTRICTED_KEY")
+    key = stripe_key()
     if not key: raise PaymentError("Payments aren't configured yet.")
     if not re.fullmatch(r"cs_(live|test)_[A-Za-z0-9]{10,200}", session_id or ""): raise PaymentError("Invalid session id.")
     req = urllib.request.Request(f"https://api.stripe.com/v1/checkout/sessions/{session_id}", headers={"Authorization": "Bearer " + key})
