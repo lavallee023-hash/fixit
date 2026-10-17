@@ -130,5 +130,40 @@ def admin_stripe_key():
     credits.save_stripe_key(key)
     return {"ok": True, "verified": credits.stripe_key_works(key)}
 
+TEST_EMAIL_MARKERS = ("smoketest", "test@example.com", "@mail.grokbot.com")
+
+def _stats():
+    """Aggregate-only usage stats (no emails or error text)."""
+    now = datetime.datetime.now(); m = _month(); day_ago = (now - datetime.timedelta(days=1)).isoformat(timespec="seconds")
+    usage = _usage()
+    q = []
+    try:
+        for l in open(QUEUE): q.append(json.loads(l))
+    except OSError: pass
+    def real(r): return not any(t in (r.get("email") or "").lower() for t in TEST_EMAIL_MARKERS)
+    rq = [r for r in q if real(r)]
+    reasons = {}
+    for r in rq:
+        k = "busy" if "busy" in (r.get("reason") or "") else ("low confidence" if "confidence" in (r.get("reason") or "") else "other")
+        reasons[k] = reasons.get(k, 0) + 1
+    try: cr = json.load(open(credits.CREDITS))
+    except Exception: cr = {}
+    pays = 0
+    try: pays = sum(1 for l in open(credits.LEDGER) if '"source": "stripe' in l)
+    except OSError: pass
+    return {"users_this_month": sum(1 for v in usage.values() if v.get(m)), "free_fixes_this_month": sum(v.get(m, 0) for v in usage.values()),
+            "users_all_time": len(usage), "escalations_real_total": len(rq), "escalations_real_open": sum(1 for r in rq if r.get("status") == "open"),
+            "escalations_real_24h": sum(1 for r in rq if (r.get("ts") or "") >= day_ago), "escalation_reasons": reasons,
+            "busy_24h_all": sum(1 for r in q if "busy" in (r.get("reason") or "") and (r.get("ts") or "") >= day_ago),
+            "paid_accounts": len(cr), "stripe_credits_granted": pays, "server_time": now.isoformat(timespec="seconds")}
+
+@app.route("/admin/stats", methods=["POST"])
+def admin_stats():
+    """Signed with the same HMAC as /admin/stripe-key: key_ct must be the literal string "stats"."""
+    d = request.get_json(silent=True) or {}
+    if d.get("key_ct") != "stats" or not keyhandoff.check(os.environ.get("GEMINI_API_KEY", ""), d.get("ts"), "stats", d.get("sig")):
+        return {"ok": False, "error": "unauthorized"}, 403
+    return {"ok": True, **_stats()}
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
