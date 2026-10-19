@@ -2,3 +2,5 @@
 __pycache__/
 web/data/
 .env
+marketing/sponsors.md
+marketing/drafts/
