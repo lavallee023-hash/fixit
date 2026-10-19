@@ -1,0 +1,60 @@
+{
+ "slug": "supabase-new-row-violates-row-level-security-policy",
+ "error": "new row violates row-level security policy for table",
+ "platform": "Supabase",
+ "batch": 2,
+ "date": "2026-10-19",
+ "meaning": "Supabase blocked an insert or update because Row Level Security (RLS) is on for that table and no policy allows this user to write this row. Postgres returns error code 42501, and Lovable or Bolt apps usually show it as a failed save or a red toast.",
+ "causes": [
+  "RLS is enabled on the table but there is no INSERT policy at all, so every insert from the browser is denied.",
+  "The insert is followed by `.select()`, which also needs a SELECT policy that lets the user read the new row back.",
+  "The INSERT policy's WITH CHECK compares `auth.uid()` to a column like `user_id`, but the app never sets `user_id` (or sets it to the wrong value).",
+  "The request is made before the user is signed in, so it runs as the `anon` role and `auth.uid()` is null.",
+  "An upsert or update also needs an UPDATE policy (USING plus WITH CHECK), not just INSERT."
+ ],
+ "steps": [
+  {
+   "text": "Find the table and the operation. The table name is in the error message. Check whether the code calls `.insert()`, `.upsert()` or `.update()`, and whether it chains `.select()` after it."
+  },
+  {
+   "text": "In the Supabase dashboard, open Authentication > Policies (or Table Editor > the table > RLS policies) and check which policies exist. You need one for each operation the app performs."
+  },
+  {
+   "text": "Add an INSERT policy that lets signed-in users create rows they own. Run this in the SQL Editor, replacing `todos` and `user_id` with your table and owner column.",
+   "code": "create policy \"Users can insert their own rows\"\non public.todos for insert\nto authenticated\nwith check ((select auth.uid()) = user_id);"
+  },
+  {
+   "text": "If the code uses `.select()` after insert, or the app lists rows, add a matching SELECT policy.",
+   "code": "create policy \"Users can read their own rows\"\non public.todos for select\nto authenticated\nusing ((select auth.uid()) = user_id);"
+  },
+  {
+   "text": "Make sure the owner column is filled in. Either send it from the app, or give the column a default so the database fills it for you.",
+   "code": "alter table public.todos\n  alter column user_id set default auth.uid();"
+  },
+  {
+   "text": "For upserts or edits, add an UPDATE policy too, with both USING and WITH CHECK set to the same ownership rule."
+  },
+  {
+   "text": "Test it while signed in as a normal user (not in the SQL Editor, which runs as an admin and skips RLS). If it still fails, log `(await supabase.auth.getSession()).data.session` right before the insert to confirm the user is actually signed in."
+  }
+ ],
+ "prompt": "Saving to Supabase fails with 'new row violates row-level security policy for table <table>'. Check every insert, upsert and update on that table. Make sure each insert sets user_id to the signed-in user's id (or rely on a column default of auth.uid()), and that the user is signed in before the write runs. Then give me the SQL for RLS policies on that table: INSERT with check (select auth.uid()) = user_id, SELECT and UPDATE using the same rule, all for the authenticated role. Do not disable RLS and do not use the service role key in the frontend.",
+ "faq": [
+  {
+   "q": "Can I just turn RLS off?",
+   "a": "Please don't. With RLS off, anyone with your public anon key (which is in your frontend code) can read and change every row in that table. Add the right policies instead."
+  },
+  {
+   "q": "Why does the insert work in the SQL Editor but not in my app?",
+   "a": "The SQL Editor runs as a privileged role that bypasses RLS. Your app runs as `anon` or `authenticated`, so the policies apply there."
+  },
+  {
+   "q": "The row was saved but I still got the error. Why?",
+   "a": "That usually means the insert was allowed but the `.select()` chained after it was not. Add a SELECT policy, or remove `.select()` if you don't need the row back."
+  },
+  {
+   "q": "Should I use the service role key to get around it?",
+   "a": "Only in trusted server code such as an Edge Function. Never put the service role key in browser code, because it gives full access to your database."
+  }
+ ]
+}

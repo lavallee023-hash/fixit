@@ -25,6 +25,8 @@ supabase-relation-does-not-exist,"relation ""public.table"" does not exist",Supa
 supabase-storage-bucket-not-found,StorageApiError: Bucket not found,Supabase,1,2026-10-15
 vercel-404-not-found-on-refresh,404: NOT_FOUND on Vercel after refreshing a page (Vite / React SPA),Vercel,1,2026-10-15
 vercel-function-invocation-timeout,504: GATEWAY_TIMEOUT FUNCTION_INVOCATION_TIMEOUT,Vercel,1,2026-10-15
+supabase-edge-function-cors-error,Access to fetch at 'https://<project>.supabase.co/functions/v1/...' has been blocked by CORS policy,Supabase,2,2026-10-19
+supabase-new-row-violates-row-level-security-policy,new row violates row-level security policy for table,Supabase,2,2026-10-19
 supabase-auth-session-missing,AuthSessionMissingError: Auth session missing!,Supabase,candidate,
 supabase-invalid-login-credentials,AuthApiError: Invalid login credentials,Supabase,candidate,
 supabase-user-already-registered,User already registered,Supabase,candidate,

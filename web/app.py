@@ -104,7 +104,10 @@ def errors_noslash(): return redirect("/errors/", 301)
 def error_page(slug):
     e = ERRORS.get(slug)
     if not e: abort(404)
-    related = [r for r in ERRORS.values() if r["platform"] == e["platform"] and r["slug"] != slug][:5]
+    fam = e["platform"].split()[0].lower()
+    related = [r for r in ERRORS.values() if r["slug"] != slug and r["platform"] == e["platform"]]
+    related += [r for r in ERRORS.values() if r["slug"] != slug and r not in related and (fam in r["platform"].lower() or fam in r["slug"])]
+    related = related[:5]
     return render_template("error_page.html", e=e, ld=encyclopedia.jsonld(e), inline=encyclopedia.inline, related=related)
 
 @app.get("/robots.txt")

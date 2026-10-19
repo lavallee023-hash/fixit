@@ -14,12 +14,14 @@ https://fixitbot.pythonanywhere.com/errors/stripe-no-signatures-found-matching-p
 https://fixitbot.pythonanywhere.com/errors/stripe-no-such-price
 https://fixitbot.pythonanywhere.com/errors/supabase-auth-redirects-to-localhost
 https://fixitbot.pythonanywhere.com/errors/supabase-could-not-find-column-in-schema-cache
+https://fixitbot.pythonanywhere.com/errors/supabase-edge-function-cors-error
 https://fixitbot.pythonanywhere.com/errors/supabase-edge-function-non-2xx-status
 https://fixitbot.pythonanywhere.com/errors/supabase-email-not-confirmed
 https://fixitbot.pythonanywhere.com/errors/supabase-email-rate-limit-exceeded
 https://fixitbot.pythonanywhere.com/errors/supabase-infinite-recursion-in-policy
 https://fixitbot.pythonanywhere.com/errors/supabase-invalid-refresh-token-not-found
 https://fixitbot.pythonanywhere.com/errors/supabase-jwt-expired
+https://fixitbot.pythonanywhere.com/errors/supabase-new-row-violates-row-level-security-policy
 https://fixitbot.pythonanywhere.com/errors/supabase-permission-denied-for-table
 https://fixitbot.pythonanywhere.com/errors/supabase-relation-does-not-exist
 https://fixitbot.pythonanywhere.com/errors/supabase-storage-bucket-not-found

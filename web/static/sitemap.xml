@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://fixitbot.pythonanywhere.com/</loc><lastmod>2026-10-15</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://fixitbot.pythonanywhere.com/llms.txt</loc><lastmod>2026-10-15</lastmod></url>
-  <url><loc>https://fixitbot.pythonanywhere.com/errors/</loc><lastmod>2026-10-15</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://fixitbot.pythonanywhere.com/</loc><lastmod>2026-10-19</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://fixitbot.pythonanywhere.com/llms.txt</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://fixitbot.pythonanywhere.com/errors/</loc><lastmod>2026-10-19</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/eaddrinuse-address-already-in-use</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/failed-to-fetch-dynamically-imported-module</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/mixed-content-blocked</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
@@ -18,12 +18,14 @@
   <url><loc>https://fixitbot.pythonanywhere.com/errors/stripe-no-such-price</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-auth-redirects-to-localhost</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-could-not-find-column-in-schema-cache</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
+  <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-edge-function-cors-error</loc><lastmod>2026-10-19</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-edge-function-non-2xx-status</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-email-not-confirmed</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-email-rate-limit-exceeded</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-infinite-recursion-in-policy</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-invalid-refresh-token-not-found</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-jwt-expired</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
+  <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-new-row-violates-row-level-security-policy</loc><lastmod>2026-10-19</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-permission-denied-for-table</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-relation-does-not-exist</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>
   <url><loc>https://fixitbot.pythonanywhere.com/errors/supabase-storage-bucket-not-found</loc><lastmod>2026-10-15</lastmod><priority>0.8</priority></url>

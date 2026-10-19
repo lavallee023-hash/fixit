@@ -1,0 +1,54 @@
+{
+ "slug": "supabase-edge-function-cors-error",
+ "error": "Access to fetch at 'https://<project>.supabase.co/functions/v1/...' has been blocked by CORS policy",
+ "platform": "Supabase",
+ "batch": 2,
+ "date": "2026-10-19",
+ "meaning": "Your browser asked the Supabase Edge Function for permission to call it (a preflight OPTIONS request), and the function didn't answer with the right CORS headers. The browser then blocks the real request, which often shows up in the app only as TypeError: Failed to fetch.",
+ "causes": [
+  "The function never handles the OPTIONS preflight request, so it returns an error or no CORS headers.",
+  "CORS headers are added to the success response but not to error responses, so any thrown error looks like a CORS failure.",
+  "The `Access-Control-Allow-Headers` list is missing headers that supabase-js sends, such as `authorization`, `apikey`, `x-client-info` or `content-type`.",
+  "The function crashed or was not deployed (wrong name, failed deploy), and the gateway's error response has no CORS headers.",
+  "The function URL or project ref in the frontend is wrong, so the request goes somewhere that doesn't answer CORS."
+ ],
+ "steps": [
+  {
+   "text": "Open DevTools > Network, find the failed request and the OPTIONS request before it. Note the status code. A 404 means the function name or deploy is wrong; a 500 means the function is crashing; a 200 without headers means the headers are missing."
+  },
+  {
+   "text": "Define shared CORS headers in the function (or in `supabase/functions/_shared/cors.ts`).",
+   "code": "export const corsHeaders = {\n  'Access-Control-Allow-Origin': '*',\n  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',\n  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',\n}"
+  },
+  {
+   "text": "Answer the preflight first, before any other logic, and add the headers to every response, including errors.",
+   "code": "Deno.serve(async (req) => {\n  if (req.method === 'OPTIONS') {\n    return new Response('ok', { headers: corsHeaders })\n  }\n  try {\n    const body = await req.json()\n    // ... your logic ...\n    return new Response(JSON.stringify({ ok: true }), {\n      headers: { ...corsHeaders, 'Content-Type': 'application/json' },\n    })\n  } catch (e) {\n    return new Response(JSON.stringify({ error: String(e) }), {\n      status: 400,\n      headers: { ...corsHeaders, 'Content-Type': 'application/json' },\n    })\n  }\n})"
+  },
+  {
+   "text": "Redeploy the function and check its logs in the Supabase dashboard (Edge Functions > your function > Logs) for crashes.",
+   "code": "supabase functions deploy your-function-name"
+  },
+  {
+   "text": "Call it from the frontend with `supabase.functions.invoke()`, which uses the right URL and sends the auth headers for you.",
+   "code": "const { data, error } = await supabase.functions.invoke('your-function-name', { body: { name: 'test' } })"
+  },
+  {
+   "text": "Once it works, you can replace `*` in Allow-Origin with your real site address (for example `https://yourapp.lovable.app`) to tighten it."
+  }
+ ],
+ "prompt": "My Supabase Edge Function call is blocked by CORS ('Response to preflight request doesn't pass access control check' / Failed to fetch). Update the function so it returns early for OPTIONS requests with corsHeaders, and include corsHeaders (Access-Control-Allow-Origin, and Access-Control-Allow-Headers: authorization, x-client-info, apikey, content-type) on every response, including errors inside a try/catch. Make the frontend call it with supabase.functions.invoke() instead of a hand-built fetch URL. Then tell me to redeploy the function.",
+ "faq": [
+  {
+   "q": "Why does it work in Postman or curl but not in my app?",
+   "a": "CORS is enforced only by browsers. Postman and curl skip the preflight, so a missing header only breaks real browser requests."
+  },
+  {
+   "q": "It says CORS but the real problem was a bug. Is that normal?",
+   "a": "Yes. If the function crashes and the error response has no CORS headers, the browser reports it as a CORS failure. Check the function logs and wrap your logic in try/catch that returns corsHeaders."
+  },
+  {
+   "q": "Do I need to change anything in the Supabase dashboard?",
+   "a": "No. Edge Function CORS is handled in the function's own code. There is no dashboard CORS setting for functions."
+  }
+ ]
+}
