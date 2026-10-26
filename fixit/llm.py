@@ -1,12 +1,14 @@
 """Pluggable LLM backend with free-tier rotation.
 FIXIT_CHAIN (comma list) controls order. Entries: "gemini:<model>", "groq:<model>", "openrouter:<model>", "openai:<model>".
-Entries whose key is missing are skipped. A model that returns 429 (quota) is benched for FIXIT_BENCH_SECONDS (default 1h)
+Entries whose key is missing are skipped. A model that returns 429 (quota) is benched for FIXIT_BENCH_SECONDS (default 1h);
+a 503 (overloaded) model is skipped without retry and benched FIXIT_BUSY_BENCH_SECONDS (default 5 min)
 and the next one is tried. Keys: GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY (+FIXIT_BASE_URL).
 Never fabricates output: if every model fails, raises LLMUnavailable."""
 import os, json, base64, mimetypes, urllib.request, urllib.error, time, threading
 
 class LLMUnavailable(RuntimeError): pass
 class _Quota(Exception): pass
+class _Busy(Exception): pass   # 503 'high demand': skip to next model now, bench briefly
 
 DEFAULT_CHAIN = ("gemini:gemini-3.8-flash,gemini:gemini-3.7-flash,gemini:gemini-3.6-flash,gemini:gemini-3.5-flash,"
                  "groq:openai/gpt-oss-120b,openrouter:openrouter/free,"
@@ -21,7 +23,8 @@ def _post(url, body, headers, timeout=120):
             return json.load(urllib.request.urlopen(req, timeout=timeout))
         except urllib.error.HTTPError as e:
             if e.code == 429: raise _Quota(e.read()[:200])
-            if e.code in (500, 502, 503) and attempt == 0: time.sleep(3); continue
+            if e.code == 503: raise _Busy(e.read()[:200])
+            if e.code in (500, 502) and attempt == 0: time.sleep(3); continue
             raise RuntimeError(f"HTTP {e.code}: {e.read()[:200]!r}")
 
 def _img(path):
@@ -69,6 +72,9 @@ def complete_json(system, user, image_path=None, model=None):
         except _Quota:
             with _lock: _bench[tag] = time.time() + bench_s
             errs.append(f"{tag} quota")
+        except _Busy:
+            with _lock: _bench[tag] = time.time() + int(os.environ.get("FIXIT_BUSY_BENCH_SECONDS", "300"))
+            errs.append(f"{tag} busy")
         except Exception as e:
             errs.append(f"{tag} {str(e)[:80]}")
     raise LLMUnavailable("All models failed or out of quota: " + "; ".join(errs))
