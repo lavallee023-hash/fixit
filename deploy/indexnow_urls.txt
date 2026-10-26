@@ -13,6 +13,7 @@ https://fixitbot.pythonanywhere.com/errors/stripe-invalid-api-key-provided
 https://fixitbot.pythonanywhere.com/errors/stripe-no-signatures-found-matching-payload
 https://fixitbot.pythonanywhere.com/errors/stripe-no-such-price
 https://fixitbot.pythonanywhere.com/errors/supabase-auth-redirects-to-localhost
+https://fixitbot.pythonanywhere.com/errors/supabase-auth-session-missing
 https://fixitbot.pythonanywhere.com/errors/supabase-could-not-find-column-in-schema-cache
 https://fixitbot.pythonanywhere.com/errors/supabase-edge-function-cors-error
 https://fixitbot.pythonanywhere.com/errors/supabase-edge-function-non-2xx-status
@@ -23,6 +24,7 @@ https://fixitbot.pythonanywhere.com/errors/supabase-invalid-refresh-token-not-fo
 https://fixitbot.pythonanywhere.com/errors/supabase-jwt-expired
 https://fixitbot.pythonanywhere.com/errors/supabase-new-row-violates-row-level-security-policy
 https://fixitbot.pythonanywhere.com/errors/supabase-permission-denied-for-table
+https://fixitbot.pythonanywhere.com/errors/supabase-pgrst200-relationship-not-found
 https://fixitbot.pythonanywhere.com/errors/supabase-relation-does-not-exist
 https://fixitbot.pythonanywhere.com/errors/supabase-storage-bucket-not-found
 https://fixitbot.pythonanywhere.com/errors/vercel-404-not-found-on-refresh

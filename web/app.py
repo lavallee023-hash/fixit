@@ -97,7 +97,7 @@ ERRORS = encyclopedia.load()
 def errors_index():
     groups = {}
     for e in ERRORS.values(): groups.setdefault(e["platform"], []).append(e)
-    return render_template("errors_index.html", errors=ERRORS, groups=sorted(groups.items()))
+    return render_template("errors_index.html", errors=ERRORS, groups=sorted(groups.items()), ld=encyclopedia.index_jsonld(ERRORS))
 @app.get("/errors")
 def errors_noslash(): return redirect("/errors/", 301)
 @app.get("/errors/<slug>")

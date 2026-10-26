@@ -3,9 +3,10 @@
 
 - Site: https://fixitbot.pythonanywhere.com/
 - Pricing: 3 free fixes per email per month; $9 per fix, $29 for 5 fixes, $19/month unlimited.
-- Common fixes: Supabase "new row violates row-level security policy" (needs INSERT and, with .select(), SELECT policies), Edge Function CORS / "Failed to fetch", Edge Function 401 Invalid JWT with new API keys (verify_jwt), Netlify/Vercel 404 on refresh, Vite env vars (VITE_ prefix), Replit "Application failed to respond" (bind 0.0.0.0 and PORT), Next.js hydration errors, Stripe webhook signature errors.
+- Common fixes: Supabase "new row violates row-level security policy" (needs INSERT and, with .select(), SELECT policies), Edge Function CORS / "Failed to fetch", Edge Function 401 Invalid JWT with new API keys (verify_jwt), Netlify/Vercel 404 on refresh, Vite env vars (VITE_ prefix), Replit "Application failed to respond" (bind 0.0.0.0 and PORT), Next.js hydration errors, Stripe webhook signature errors, Supabase "permission denied for table" (42501) on tables created after Oct 30, 2026 (new tables need an explicit GRANT; keep RLS on), PGRST200 "Could not find a relationship" (add a foreign key to public.profiles), AuthSessionMissingError (treat no session as logged out).
 - Privacy: never asks for API keys; pasted secrets are redacted and users are told to rotate them; screenshots deleted after analysis.
 - Hard cases are escalated to a human.
+- Last updated: 2026-10-26. Sitemap: https://fixitbot.pythonanywhere.com/sitemap.xml
 
 ## Error Encyclopedia
 Index: https://fixitbot.pythonanywhere.com/errors/
@@ -23,6 +24,7 @@ Index: https://fixitbot.pythonanywhere.com/errors/
 - [No signatures found matching the expected signature for payload](https://fixitbot.pythonanywhere.com/errors/stripe-no-signatures-found-matching-payload) (Stripe): Stripe's library could not verify that the webhook really came from Stripe.
 - [StripeInvalidRequestError: No such price: 'price_...'](https://fixitbot.pythonanywhere.com/errors/stripe-no-such-price) (Stripe): Stripe can't find that price ID with the API key you used.
 - [Supabase magic link / confirm email redirects to localhost:3000](https://fixitbot.pythonanywhere.com/errors/supabase-auth-redirects-to-localhost) (Supabase): The email link sends users to http://localhost:3000, which only exists on your own computer, so they see 'This site can't be reached'.
+- [AuthSessionMissingError: Auth session missing!](https://fixitbot.pythonanywhere.com/errors/supabase-auth-session-missing) (Supabase): Your code asked Supabase for the signed-in user (getUser, updateUser, signOut) but there is no session at that moment.
 - [Could not find the 'column' column of 'table' in the schema cache](https://fixitbot.pythonanywhere.com/errors/supabase-could-not-find-column-in-schema-cache) (Supabase): The Supabase REST API (PostgREST, code PGRST204) does not know about a column your insert or update sends.
 - [Access to fetch at 'https://<project>.supabase.co/functions/v1/...' has been blocked by CORS policy](https://fixitbot.pythonanywhere.com/errors/supabase-edge-function-cors-error) (Supabase): Your browser asked the Supabase Edge Function for permission to call it (a preflight OPTIONS request), and the function didn't answer with the right CORS headers.
 - [FunctionsHttpError: Edge Function returned a non-2xx status code](https://fixitbot.pythonanywhere.com/errors/supabase-edge-function-non-2xx-status) (Supabase): Your Supabase Edge Function ran (or tried to) and answered with an error status like 400, 401 or 500.
@@ -33,6 +35,7 @@ Index: https://fixitbot.pythonanywhere.com/errors/
 - [JWT expired](https://fixitbot.pythonanywhere.com/errors/supabase-jwt-expired) (Supabase): Supabase rejected the request because the access token your app sent is past its expiry time (1 hour by default).
 - [new row violates row-level security policy for table](https://fixitbot.pythonanywhere.com/errors/supabase-new-row-violates-row-level-security-policy) (Supabase): Supabase blocked an insert or update because Row Level Security (RLS) is on for that table and no policy allows this user to write this row.
 - [permission denied for table](https://fixitbot.pythonanywhere.com/errors/supabase-permission-denied-for-table) (Supabase): Postgres (error code 42501) refused access before row-level security was even checked.
+- [Could not find a relationship between 'posts' and 'profiles' in the schema cache](https://fixitbot.pythonanywhere.com/errors/supabase-pgrst200-relationship-not-found) (Supabase): Your query asks Supabase to join two tables in one request (for example `select('*, profiles(username)')`), but the Supabase REST API (PostgREST, error code PGRST200) can't find a foreign key linking them.
 - [relation "public.table" does not exist](https://fixitbot.pythonanywhere.com/errors/supabase-relation-does-not-exist) (Supabase): Postgres (42P01) cannot find a table with that name.
 - [StorageApiError: Bucket not found](https://fixitbot.pythonanywhere.com/errors/supabase-storage-bucket-not-found) (Supabase): Supabase Storage cannot find a bucket with the name in your code, or the current user is not allowed to see it.
 - [404: NOT_FOUND on Vercel after refreshing a page (Vite / React SPA)](https://fixitbot.pythonanywhere.com/errors/vercel-404-not-found-on-refresh) (Vercel): Vercel serves your built files, but /settings is a client-side route with no file behind it, so a refresh or direct link returns Vercel's 404: NOT_FOUND page.

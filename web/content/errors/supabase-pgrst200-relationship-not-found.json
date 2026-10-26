@@ -1,0 +1,50 @@
+{
+ "slug": "supabase-pgrst200-relationship-not-found",
+ "error": "Could not find a relationship between 'posts' and 'profiles' in the schema cache",
+ "platform": "Supabase",
+ "batch": 3,
+ "date": "2026-10-26",
+ "meaning": "Your query asks Supabase to join two tables in one request (for example `select('*, profiles(username)')`), but the Supabase REST API (PostgREST, error code PGRST200) can't find a foreign key linking them. Joins in supabase-js only work through foreign keys.",
+ "causes": [
+  "There is no foreign key between the two tables. Very common: `posts.user_id` references `auth.users`, not `public.profiles`, so PostgREST sees no link from posts to profiles.",
+  "The foreign key was just added, but the API's schema cache has not reloaded yet.",
+  "The table name in the select string is wrong (for example `profile` instead of `profiles`), or the table is in a schema the API doesn't expose.",
+  "There are two or more foreign keys between the tables (for example `sender_id` and `receiver_id`). That gives a related error, PGRST201 'more than one relationship was found', and you have to name the one you mean."
+ ],
+ "steps": [
+  {
+   "text": "See which foreign keys actually exist. Run this in the Supabase SQL Editor.",
+   "code": "select conname, conrelid::regclass as from_table, confrelid::regclass as to_table\nfrom pg_constraint\nwhere contype = 'f' and connamespace = 'public'::regnamespace;"
+  },
+  {
+   "text": "If posts only points at auth.users, add a foreign key to public.profiles (this assumes profiles.id is the user's id, the usual Supabase setup).",
+   "code": "alter table public.posts\n  add constraint posts_user_id_profiles_fkey\n  foreign key (user_id) references public.profiles(id) on delete cascade;"
+  },
+  {
+   "text": "Tell the API to reload its schema cache so it sees the new relationship right away.",
+   "code": "notify pgrst, 'reload schema';"
+  },
+  {
+   "text": "Run the query again. Use the exact table name. If there is more than one foreign key, name the one to use after an exclamation mark.",
+   "code": "const { data, error } = await supabase\n  .from('posts')\n  .select('*, author:profiles!posts_user_id_profiles_fkey(username, avatar_url)')"
+  },
+  {
+   "text": "If you can't add a foreign key, run two queries instead: fetch the posts, then fetch the matching profiles with `.in('id', userIds)` and merge them in code."
+  }
+ ],
+ "prompt": "My Supabase query fails with 'Could not find a relationship between <TABLE_A> and <TABLE_B> in the schema cache' (PGRST200). First write SQL to list the foreign keys in the public schema so we can see what links exist. If <TABLE_A>.user_id only references auth.users, write a migration that adds a foreign key from <TABLE_A>.user_id to public.profiles(id), then runs notify pgrst, 'reload schema'. Then update the supabase-js select to embed the related table by its exact name, naming the foreign key with ! if there is more than one. Don't disable RLS or change existing policies.",
+ "faq": [
+  {
+   "q": "Why can't I join to auth.users directly?",
+   "a": "The auth schema isn't exposed through the Supabase API, for security reasons. Keep public data such as username and avatar in a public.profiles table and link your tables to that."
+  },
+  {
+   "q": "I added the foreign key and it still fails. Why?",
+   "a": "Run `notify pgrst, 'reload schema';` or wait a minute for the cache to refresh, then check the table names in your select string match exactly."
+  },
+  {
+   "q": "Does the join skip row-level security?",
+   "a": "No. RLS applies to both tables. If the join works but the related data comes back null, the user probably lacks a SELECT policy on the second table."
+  }
+ ]
+}

@@ -27,7 +27,7 @@ vercel-404-not-found-on-refresh,404: NOT_FOUND on Vercel after refreshing a page
 vercel-function-invocation-timeout,504: GATEWAY_TIMEOUT FUNCTION_INVOCATION_TIMEOUT,Vercel,1,2026-10-15
 supabase-edge-function-cors-error,Access to fetch at 'https://<project>.supabase.co/functions/v1/...' has been blocked by CORS policy,Supabase,2,2026-10-19
 supabase-new-row-violates-row-level-security-policy,new row violates row-level security policy for table,Supabase,2,2026-10-19
-supabase-auth-session-missing,AuthSessionMissingError: Auth session missing!,Supabase,candidate,
+supabase-auth-session-missing,AuthSessionMissingError: Auth session missing!,Supabase,3,2026-10-26
 supabase-invalid-login-credentials,AuthApiError: Invalid login credentials,Supabase,candidate,
 supabase-user-already-registered,User already registered,Supabase,candidate,
 supabase-oauth-provider-not-enabled,Unsupported provider: provider is not enabled,Supabase,candidate,
@@ -35,7 +35,7 @@ supabase-duplicate-key-unique-constraint,duplicate key value violates unique con
 supabase-violates-foreign-key-constraint,insert or update on table violates foreign key constraint,Supabase,candidate,
 supabase-null-value-violates-not-null,null value in column violates not-null constraint,Supabase,candidate,
 supabase-invalid-input-syntax-uuid,invalid input syntax for type uuid,Supabase,candidate,
-supabase-pgrst200-relationship-not-found,Could not find a relationship between tables in the schema cache,Supabase,candidate,
+supabase-pgrst200-relationship-not-found,Could not find a relationship between tables in the schema cache,Supabase,3,2026-10-26
 supabase-realtime-not-receiving,Supabase realtime subscription not receiving changes,Supabase,candidate,
 supabase-storage-payload-too-large,The object exceeded the maximum allowed size,Supabase,candidate,
 supabase-too-many-connections,remaining connection slots are reserved / too many clients,Supabase,candidate,

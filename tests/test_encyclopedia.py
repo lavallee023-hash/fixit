@@ -27,7 +27,7 @@ def test_pages_render_with_jsonld():
         assert "<h1>" in b and "Try FixIt free" in b
         assert f'rel="canonical" href="https://fixitbot.pythonanywhere.com/errors/{s}"' in b
         ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', b, re.S).group(1))
-        assert {x["@type"] for x in ld} == {"TechArticle", "FAQPage"}
+        assert {x["@type"] for x in ld} == {"TechArticle", "FAQPage", "BreadcrumbList"}
 
 def test_unknown_404():
     assert C.get("/errors/nope-not-real").status_code == 404
@@ -43,3 +43,17 @@ def test_sitemap_llms_home_link():
 def test_csv_matches():
     rows = open(os.path.join(ROOT, "marketing/encyclopedia.csv")).read()
     for s in E: assert s in rows
+
+def test_index_itemlist_jsonld():
+    b = C.get("/errors/").get_data(as_text=True)
+    ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', b, re.S).group(1))
+    assert ld["@type"] == "CollectionPage" and ld["mainEntity"]["numberOfItems"] == len(E)
+    urls = {i["url"] for i in ld["mainEntity"]["itemListElement"]}
+    assert all(f"https://fixitbot.pythonanywhere.com/errors/{s}" in urls for s in E)
+
+def test_batch3_pages_and_freshness():
+    for s in ("supabase-auth-session-missing", "supabase-pgrst200-relationship-not-found"):
+        b = C.get(f"/errors/{s}").get_data(as_text=True)
+        assert "Copy prompt" in b and "Related errors" in b
+    b = C.get("/errors/supabase-permission-denied-for-table").get_data(as_text=True)
+    assert "October 30, 2026" in b and '"dateModified": "2026-10-26"' in b

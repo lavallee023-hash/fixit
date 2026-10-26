@@ -1,0 +1,51 @@
+{
+ "slug": "supabase-auth-session-missing",
+ "error": "AuthSessionMissingError: Auth session missing!",
+ "platform": "Supabase",
+ "batch": 3,
+ "date": "2026-10-26",
+ "meaning": "Your code asked Supabase for the signed-in user (getUser, updateUser, signOut) but there is no session at that moment. Either nobody is signed in, the session has not been restored yet, or the code is running somewhere (a server, an Edge Function) that never received the user's login token.",
+ "causes": [
+  "`supabase.auth.getUser()` runs on page load for a logged-out visitor. In supabase-js v2 that returns an AuthSessionMissingError instead of just `null`.",
+  "Password reset page: the app calls `updateUser({ password })` before Supabase has turned the reset link into a session (the link expired, was already used, was opened in a different browser, or the reset page is not in your allowed Redirect URLs).",
+  "Server-side code (Next.js server components, route handlers, middleware) uses a plain `createClient` with no cookies, so it cannot see the browser's session. Use `@supabase/ssr` there.",
+  "An Edge Function creates its Supabase client without forwarding the request's `Authorization` header, so `getUser()` inside the function has no user.",
+  "`signOut()` is called when the user is already signed out (for example twice in a row)."
+ ],
+ "steps": [
+  {
+   "text": "Treat 'no session' as 'logged out', not as a crash. Check the session first and send logged-out users to your login page.",
+   "code": "const { data: { session } } = await supabase.auth.getSession()\nif (!session) {\n  navigate('/login') // or show the logged-out view\n  return\n}\nconst { data: { user }, error } = await supabase.auth.getUser()"
+  },
+  {
+   "text": "Keep the UI in sync with sign-in and sign-out by listening to auth changes once, near the root of the app.",
+   "code": "useEffect(() => {\n  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {\n    setSession(session)\n  })\n  return () => subscription.unsubscribe()\n}, [])"
+  },
+  {
+   "text": "Password reset: only show the 'new password' form after Supabase reports the recovery session. Also add the reset page URL under Authentication > URL Configuration > Redirect URLs.",
+   "code": "supabase.auth.onAuthStateChange((event) => {\n  if (event === 'PASSWORD_RECOVERY') setCanSetNewPassword(true)\n})\n// then, on submit:\nawait supabase.auth.updateUser({ password: newPassword })"
+  },
+  {
+   "text": "Edge Functions: build the client with the caller's token so `getUser()` knows who is calling. `supabase.functions.invoke()` from a signed-in browser sends this header for you.",
+   "code": "const supabase = createClient(\n  Deno.env.get('SUPABASE_URL')!,\n  Deno.env.get('SUPABASE_ANON_KEY')!,\n  { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } }\n)\nconst { data: { user } } = await supabase.auth.getUser()\nif (!user) return new Response('Unauthorized', { status: 401, headers: corsHeaders })"
+  },
+  {
+   "text": "Next.js: on the server use `createServerClient` from `@supabase/ssr` with the request cookies, and use `createBrowserClient` in client components. A plain `createClient` on the server has no session."
+  }
+ ],
+ "prompt": "My app throws 'AuthSessionMissingError: Auth session missing!'. Find every call to supabase.auth.getUser(), updateUser() and signOut(). Before each one, check for a session with supabase.auth.getSession() and treat no session as logged out (redirect to /login or show the logged-out view) instead of throwing. Add a single onAuthStateChange listener at the app root that stores the session. On the password reset page, only allow updateUser({ password }) after the PASSWORD_RECOVERY event fires. If an Edge Function calls auth.getUser(), create its client with the request's Authorization header. Don't change database tables or RLS policies.",
+ "faq": [
+  {
+   "q": "Is my Supabase project broken?",
+   "a": "No. It just means no user was signed in at the moment your code asked for one. It's an app logic issue, not a server outage."
+  },
+  {
+   "q": "Why does it only happen on the reset-password page?",
+   "a": "The reset link has to be exchanged for a session first. If the link expired, was already clicked (some email scanners open links automatically), or was opened in another browser, there is no session. Ask the user to request a new link and open it in the same browser."
+  },
+  {
+   "q": "Should I use getSession() or getUser()?",
+   "a": "Use getSession() for a quick 'is anyone signed in?' check in the browser. Use getUser() when you need to trust the answer, such as on a server or in an Edge Function, because it verifies the token with Supabase."
+  }
+ ]
+}

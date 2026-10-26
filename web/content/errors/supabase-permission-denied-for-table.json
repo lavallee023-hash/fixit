@@ -4,8 +4,9 @@
  "platform": "Supabase",
  "batch": 1,
  "date": "2026-10-15",
- "meaning": "Postgres (error code 42501) refused access before row-level security was even checked. The database role making the request, usually anon or authenticated, has no GRANT on that table. This is different from an RLS policy error.",
+ "meaning": "Postgres (error code 42501) refused access before row-level security was even checked. The database role making the request, usually anon or authenticated, has no GRANT on that table. This is different from an RLS policy error. From October 30, 2026, Supabase no longer grants new public tables to the API roles automatically, so any table created after that date shows this error until you add a GRANT.",
  "causes": [
+  "The table was created on or after October 30, 2026. Supabase now makes Data API access opt-in: new tables in `public` get no automatic grants for `anon` and `authenticated`, so supabase-js gets 42501 until you add a GRANT. Older tables keep their grants.",
   "The table was created with raw SQL or a migration tool (Prisma, Drizzle) that did not grant privileges to the anon and authenticated roles.",
   "Someone ran REVOKE ALL, or the table lives in a custom schema that was never exposed.",
   "A view or function touches another table the caller has no rights on."
@@ -31,8 +32,12 @@
    "text": "Re-run the request. If you now get 'new row violates row-level security policy' instead, the GRANT is fixed and you need a policy."
   }
  ],
- "prompt": "Supabase returns 'permission denied for table <TABLE>' (42501). Write a SQL migration that grants select, insert, update, delete on public.<TABLE> to the authenticated role (and select to anon only if public reads are intended), grants usage on the table's sequences, and confirms row level security is enabled with policies limiting rows to auth.uid(). Do not disable RLS.",
+ "prompt": "Supabase returns 'permission denied for table <TABLE>' (42501). Write a SQL migration that grants select, insert, update, delete on public.<TABLE> to the authenticated role (and select to anon only if public reads are intended), grants usage on the table's sequences, and confirms row level security is enabled with policies limiting rows to auth.uid(). Put the grants in the same migration that creates the table, because new Supabase tables are no longer exposed to the API automatically. Do not disable RLS.",
  "faq": [
+  {
+   "q": "Why did my brand-new table break when my older tables work?",
+   "a": "Since October 30, 2026, Supabase no longer auto-exposes new tables in the public schema to the Data API. Older tables keep their grants. Add a GRANT for the roles that need the table (usually authenticated), keep RLS on, and put the GRANT in the same migration that creates the table."
+  },
   {
    "q": "Is this the same as an RLS error?",
    "a": "No. 'permission denied' is a missing GRANT. RLS errors say 'violates row-level security policy' or simply return zero rows."
@@ -40,6 +45,11 @@
   {
    "q": "Is granting to anon dangerous?",
    "a": "Only if RLS is off or your policies are too open. With RLS on, the grant just allows the policies to be evaluated."
+  },
+  {
+   "q": "Should I just grant everything on all tables to fix it?",
+   "a": "No. Grant only the operations each role needs, on the tables that need them, and make sure RLS is on with real policies first. A blanket grant re-opens any table whose RLS is off or too loose."
   }
- ]
+ ],
+ "updated": "2026-10-26"
 }
